@@ -1,5 +1,10 @@
 package fr.lyrionix.showfeed
 
+/*
+ * Copyright (c) 2026 Valentin Guevara / Lyrionix. All rights reserved.
+ * Proprietary software — see repository LICENSE. No reuse without permission.
+ */
+
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color

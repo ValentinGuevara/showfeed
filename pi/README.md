@@ -4,6 +4,8 @@ Receives media from a Lumix GH6 over **Samba**, stores it on a **USB SSD**, runs
 
 Product pitch: [https://lyrionix.fr/showfeed/](https://lyrionix.fr/showfeed/)
 
+Copyright © 2026 Valentin Guevara / Lyrionix. All rights reserved. Proprietary — see root `LICENSE`.
+
 ```
 GH6 --Wi‑Fi SMB--> Pi Samba --> /media/showfeed/inbox
                                   │

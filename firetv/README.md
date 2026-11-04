@@ -4,6 +4,8 @@ Fullscreen Android TV / Fire OS app that loads the Raspberry Pi player UI in a W
 
 Product pitch: [https://lyrionix.fr/showfeed/](https://lyrionix.fr/showfeed/)
 
+Copyright © 2026 Valentin Guevara / Lyrionix. All rights reserved. Proprietary — see root `LICENSE`.
+
 ```
 Fire TV Stick  →  http://<pi-ip>:8080/  →  approved photos & clips
 ```

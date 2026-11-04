@@ -94,6 +94,14 @@ Open **SHOWFEED Player**, press **Menu** to set the Pi URL if it is not `http://
 
 Media lives on the **SSD**, not the Pi SD card.
 
-## License / visibility
+## Ownership & license
 
-Private repository — internal Lyrionix / partners only.
+**Copyright © 2026 Valentin Guevara / Lyrionix. All rights reserved.**
+
+This is **proprietary software**. No license is granted to copy, modify, reuse,
+redistribute, or create derivative works — commercially or otherwise — without
+prior written permission from the copyright holder.
+
+See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
+
+Viewing or cloning this repository does **not** grant any rights to use the code.
