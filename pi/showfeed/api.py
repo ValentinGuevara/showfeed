@@ -13,6 +13,12 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import Config, load_config
+from .ops import (
+    build_ops_snapshot,
+    force_approve_hold,
+    requeue_all_hold,
+    requeue_hold,
+)
 
 log = logging.getLogger("showfeed.api")
 
@@ -66,7 +72,6 @@ def build_playlist(config: Config) -> list[dict]:
                 "name": path.name,
             }
         )
-    # Player loops oldest→newest feel: reverse so oldest of the window plays first
     items.reverse()
     return items
 
@@ -103,6 +108,7 @@ def create_app(config: Config) -> FastAPI:
     (config.media_root / "idle").mkdir(parents=True, exist_ok=True)
     app = FastAPI(title="ShowFeed", version="0.1.0")
     player_html = Path(__file__).with_name("player.html")
+    regie_html = Path(__file__).with_name("regie.html")
 
     @app.get("/api/health")
     def health() -> dict:
@@ -135,21 +141,46 @@ def create_app(config: Config) -> FastAPI:
 
     @app.get("/api/status")
     def status() -> dict:
-        def count_files(folder: Path) -> int:
-            if not folder.is_dir():
-                return 0
-            return sum(
-                1
-                for p in folder.rglob("*")
-                if p.is_file() and not p.name.startswith(".")
-            )
-
+        snap = build_ops_snapshot(config, playlist_count=len(build_playlist(config)))
         return {
-            "inbox": count_files(config.inbox),
-            "approved": count_files(config.approved),
-            "hold": count_files(config.hold),
-            "playlist": len(build_playlist(config)),
+            "inbox": snap["counts"]["inbox"],
+            "approved": snap["counts"]["approved"],
+            "hold": snap["counts"]["hold"],
+            "playlist": snap["counts"]["playlist"],
+            "disk_percent": snap["disk"].get("percent_used"),
+            "alerts": snap["alerts"],
         }
+
+    @app.get("/api/ops")
+    def ops() -> dict:
+        return build_ops_snapshot(config, playlist_count=len(build_playlist(config)))
+
+    @app.post("/api/hold/{name}/requeue")
+    def hold_requeue(name: str) -> dict:
+        try:
+            return requeue_hold(config, name)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="not found") from None
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from None
+        except OSError as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from None
+
+    @app.post("/api/hold/{name}/approve")
+    def hold_approve(name: str) -> dict:
+        try:
+            return force_approve_hold(config, name)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="not found") from None
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from None
+        except Exception as exc:
+            log.exception("force approve failed")
+            raise HTTPException(status_code=500, detail=str(exc)) from None
+
+    @app.post("/api/hold/requeue-all")
+    def hold_requeue_all() -> dict:
+        return requeue_all_hold(config)
 
     @app.get("/", response_class=HTMLResponse)
     def player() -> HTMLResponse:
@@ -157,11 +188,21 @@ def create_app(config: Config) -> FastAPI:
             raise HTTPException(status_code=500, detail="player.html missing")
         return HTMLResponse(player_html.read_text(encoding="utf-8"))
 
-    # Serve approved media; prevent path escape via StaticFiles root
+    @app.get("/regie", response_class=HTMLResponse)
+    def regie() -> HTMLResponse:
+        if not regie_html.is_file():
+            raise HTTPException(status_code=500, detail="regie.html missing")
+        return HTMLResponse(regie_html.read_text(encoding="utf-8"))
+
     app.mount(
         "/media",
         StaticFiles(directory=str(config.approved)),
         name="media",
+    )
+    app.mount(
+        "/hold-media",
+        StaticFiles(directory=str(config.hold)),
+        name="hold-media",
     )
 
     return app
@@ -181,7 +222,7 @@ def main(argv: list[str] | None = None) -> int:
     config = load_config(args.config)
     app = create_app(config)
     log.info(
-        "API on http://%s:%s  approved=%s",
+        "API on http://%s:%s  approved=%s  regie=/regie",
         config.api.host,
         config.api.port,
         config.approved,

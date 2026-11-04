@@ -70,6 +70,15 @@ class PlayerConfig:
 
 
 @dataclass
+class OpsConfig:
+    """Show-night monitoring thresholds for /regie."""
+
+    hold_warn_count: int = 3
+    disk_warn_percent: float = 85.0
+    inbox_stuck_seconds: int = 30
+
+
+@dataclass
 class Config:
     media_root: Path
     inbox: Path
@@ -82,6 +91,7 @@ class Config:
     processing: ProcessingConfig = field(default_factory=ProcessingConfig)
     branding: BrandingConfig = field(default_factory=BrandingConfig)
     player: PlayerConfig = field(default_factory=PlayerConfig)
+    ops: OpsConfig = field(default_factory=OpsConfig)
 
     def ensure_dirs(self) -> None:
         for path in (self.media_root, self.inbox, self.approved, self.hold, self.archive):
@@ -134,6 +144,7 @@ def load_config(path: str | Path | None = None) -> Config:
     proc_raw = raw.get("processing") or {}
     brand_raw = raw.get("branding") or {}
     player_raw = raw.get("player") or {}
+    ops_raw = raw.get("ops") or {}
 
     api = ApiConfig(
         host=str(api_raw.get("host", "0.0.0.0")),
@@ -189,6 +200,12 @@ def load_config(path: str | Path | None = None) -> Config:
         ),
     )
 
+    ops = OpsConfig(
+        hold_warn_count=int(ops_raw.get("hold_warn_count", 3)),
+        disk_warn_percent=float(ops_raw.get("disk_warn_percent", 85.0)),
+        inbox_stuck_seconds=int(ops_raw.get("inbox_stuck_seconds", 30)),
+    )
+
     return Config(
         media_root=media_root,
         inbox=media_root / inbox_name,
@@ -201,4 +218,5 @@ def load_config(path: str | Path | None = None) -> Config:
         processing=processing,
         branding=branding,
         player=player,
+        ops=ops,
     )

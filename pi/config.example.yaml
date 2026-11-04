@@ -52,3 +52,9 @@ player:
   idle_enabled: true
   idle_media: idle/brand.jpg   # under media_root, or absolute path
   idle_message: "Bientôt sur vos écrans"
+
+# Show-night /regie monitoring
+ops:
+  hold_warn_count: 3
+  disk_warn_percent: 85
+  inbox_stuck_seconds: 30

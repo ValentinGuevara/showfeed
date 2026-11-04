@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShowFeed · Régie</title>
+  <style>
+    :root {
+      --bg: #0e1118;
+      --panel: #171b24;
+      --line: #2a3140;
+      --fg: #f3ece4;
+      --muted: #9aa3b5;
+      --accent: #f2a93b;
+      --ok: #3ecf8e;
+      --warn: #f2a93b;
+      --crit: #ff5c5c;
+      --info: #6ea8fe;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: radial-gradient(1200px 600px at 10% -10%, #1a2030, var(--bg));
+      color: var(--fg);
+      font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+      padding: 1.25rem;
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: space-between;
+      align-items: end;
+      margin-bottom: 1.25rem;
+    }
+    h1 {
+      font-size: 1.45rem;
+      letter-spacing: -0.03em;
+    }
+    h1 span { color: var(--accent); }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-top: 0.25rem; }
+    .pulse {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .pulse i {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 10px var(--ok);
+    }
+    .pulse.bad i { background: var(--crit); box-shadow: 0 0 10px var(--crit); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+    }
+    .card .label { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .card .value { font-size: 1.8rem; font-weight: 700; margin-top: 0.2rem; font-variant-numeric: tabular-nums; }
+    .card .hint { color: var(--muted); font-size: 0.8rem; margin-top: 0.2rem; }
+    .alerts { display: grid; gap: 0.55rem; margin-bottom: 1rem; }
+    .alert {
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      display: flex;
+      gap: 0.75rem;
+      align-items: start;
+    }
+    .alert.critical { border-color: var(--crit); background: rgba(255, 92, 92, 0.08); }
+    .alert.warning { border-color: var(--warn); background: rgba(242, 169, 59, 0.08); }
+    .alert.info { border-color: var(--info); background: rgba(110, 168, 254, 0.08); }
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      background: var(--line);
+      color: var(--fg);
+      white-space: nowrap;
+    }
+    .alert.critical .badge { background: var(--crit); color: #111; }
+    .alert.warning .badge { background: var(--warn); color: #111; }
+    .alert.info .badge { background: var(--info); color: #111; }
+    .row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 900px) {
+      .row { grid-template-columns: 1fr; }
+    }
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      gap: 0.75rem;
+    }
+    .panel-title h2 { font-size: 1.05rem; }
+    button, .btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: #222836;
+      color: var(--fg);
+      border-radius: 8px;
+      padding: 0.45rem 0.7rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--accent); color: var(--accent); }
+    button.primary { background: var(--accent); color: #111; border-color: var(--accent); }
+    button.danger { border-color: var(--crit); color: var(--crit); }
+    button:disabled { opacity: 0.45; cursor: wait; }
+    .hold-list { display: grid; gap: 0.65rem; }
+    .hold-item {
+      display: grid;
+      grid-template-columns: 72px 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.55rem;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #12161f;
+    }
+    .hold-item img, .hold-item .ph {
+      width: 72px;
+      height: 54px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: #000;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 0.7rem;
+    }
+    .hold-item .name { font-weight: 600; font-size: 0.9rem; word-break: break-all; }
+    .hold-item .meta { color: var(--muted); font-size: 0.78rem; margin-top: 0.2rem; }
+    .actions { display: flex; flex-direction: column; gap: 0.35rem; }
+    .empty { color: var(--muted); padding: 1rem 0; }
+    .links a { color: var(--accent); margin-right: 1rem; font-size: 0.85rem; }
+    #toast {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      background: #222836;
+      border: 1px solid var(--accent);
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: 0.25s ease;
+      pointer-events: none;
+      z-index: 20;
+    }
+    #toast.show { opacity: 1; transform: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>ShowFeed <span>· Régie</span></h1>
+      <div class="sub" id="brandSub">Monitoring soirée</div>
+      <div class="links" style="margin-top:0.55rem">
+        <a href="/" target="_blank">Player</a>
+        <a href="/api/ops" target="_blank">API ops JSON</a>
+      </div>
+    </div>
+    <div class="pulse" id="pulse"><i></i> <span id="pulseText">Connexion…</span></div>
+  </header>
+
+  <div class="grid">
+    <div class="card"><div class="label">Inbox</div><div class="value" id="cInbox">—</div></div>
+    <div class="card"><div class="label">Approved</div><div class="value" id="cApproved">—</div><div class="hint" id="lastApproved"></div></div>
+    <div class="card"><div class="label">Hold</div><div class="value" id="cHold">—</div></div>
+    <div class="card"><div class="label">Disque</div><div class="value" id="cDisk">—</div><div class="hint" id="diskHint"></div></div>
+  </div>
+
+  <div class="alerts" id="alerts"></div>
+
+  <div class="row">
+    <section class="card">
+      <div class="panel-title">
+        <h2>Hold — rattrapage</h2>
+        <button type="button" class="danger" id="btnRequeueAll">Tout requeue → inbox</button>
+      </div>
+      <div class="hold-list" id="holdList"><div class="empty">Chargement…</div></div>
+    </section>
+    <section class="card">
+      <div class="panel-title"><h2>Inbox (si coincé)</h2></div>
+      <div id="inboxList"><div class="empty">—</div></div>
+      <p class="sub" style="margin-top:1rem">
+        <strong>Forcer écran</strong> = skip qualité, branding, approved.<br />
+        <strong>Requeue</strong> = retour inbox (re-passe le pipeline).
+      </p>
+    </section>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    (function () {
+      const toastEl = document.getElementById("toast");
+      let lastAlertSig = "";
+      let audioCtx = null;
+
+      const toast = (msg) => {
+        toastEl.textContent = msg;
+        toastEl.classList.add("show");
+        setTimeout(() => toastEl.classList.remove("show"), 2200);
+      };
+
+      const beep = () => {
+        try {
+          audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.type = "square";
+          o.frequency.value = 880;
+          g.gain.value = 0.04;
+          o.connect(g);
+          g.connect(audioCtx.destination);
+          o.start();
+          o.stop(audioCtx.currentTime + 0.12);
+        } catch (_) {}
+      };
+
+      const fmtAge = (sec) => {
+        if (sec == null) return "";
+        if (sec < 60) return `il y a ${sec}s`;
+        return `il y a ${Math.floor(sec / 60)} min`;
+      };
+
+      const fmtBytes = (n) => {
+        if (!n && n !== 0) return "—";
+        const gb = n / (1024 ** 3);
+        if (gb >= 1) return gb.toFixed(1) + " Go";
+        return (n / (1024 ** 2)).toFixed(0) + " Mo";
+      };
+
+      const render = (data) => {
+        document.getElementById("brandSub").textContent =
+          (data.brand_title || "ShowFeed") + " · monitoring soirée";
+        document.getElementById("cInbox").textContent = data.counts.inbox;
+        document.getElementById("cApproved").textContent = data.counts.approved;
+        document.getElementById("cHold").textContent = data.counts.hold;
+        document.getElementById("cDisk").textContent =
+          (data.disk.percent_used != null ? data.disk.percent_used + "%" : "—");
+        document.getElementById("diskHint").textContent =
+          data.disk.ok ? fmtBytes(data.disk.free_bytes) + " libres" : (data.disk.error || "erreur");
+        document.getElementById("lastApproved").textContent =
+          data.last_approved_age_seconds != null
+            ? "dernier " + fmtAge(data.last_approved_age_seconds)
+            : "aucun";
+
+        const alerts = data.alerts || [];
+        const box = document.getElementById("alerts");
+        if (!alerts.length) {
+          box.innerHTML = '<div class="alert info"><span class="badge">ok</span><div>Aucune alerte — système nominal</div></div>';
+        } else {
+          box.innerHTML = alerts.map((a) =>
+            `<div class="alert ${a.level}"><span class="badge">${a.level}</span><div>${a.message}</div></div>`
+          ).join("");
+        }
+        const sig = alerts.map((a) => a.code + a.level).join("|");
+        if (sig && sig !== lastAlertSig && alerts.some((a) => a.level === "warning" || a.level === "critical")) {
+          beep();
+        }
+        lastAlertSig = sig;
+
+        const holds = data.hold_files || [];
+        const holdList = document.getElementById("holdList");
+        if (!holds.length) {
+          holdList.innerHTML = '<div class="empty">Hold vide ✓</div>';
+        } else {
+          holdList.innerHTML = holds.map((h) => {
+            const thumb = h.type === "image"
+              ? `<img src="/hold-media/${encodeURIComponent(h.name)}" alt="" />`
+              : `<div class="ph">VID</div>`;
+            return `<div class="hold-item">
+              ${thumb}
+              <div>
+                <div class="name">${h.name}</div>
+                <div class="meta">${h.type} · ${fmtBytes(h.bytes)} · ${fmtAge(h.age_seconds)}</div>
+              </div>
+              <div class="actions">
+                <button type="button" class="primary" data-act="approve" data-name="${encodeURIComponent(h.name)}">Forcer écran</button>
+                <button type="button" data-act="requeue" data-name="${encodeURIComponent(h.name)}">Requeue</button>
+              </div>
+            </div>`;
+          }).join("");
+        }
+
+        const inbox = data.inbox_files || [];
+        const inboxList = document.getElementById("inboxList");
+        if (!inbox.length) {
+          inboxList.innerHTML = '<div class="empty">Inbox vide</div>';
+        } else {
+          inboxList.innerHTML = inbox.map((h) =>
+            `<div class="meta" style="padding:0.35rem 0;border-bottom:1px solid var(--line)">
+              <strong>${h.name}</strong> · ${fmtAge(h.age_seconds)}
+            </div>`
+          ).join("");
+        }
+      };
+
+      const refresh = async () => {
+        const pulse = document.getElementById("pulse");
+        const pulseText = document.getElementById("pulseText");
+        try {
+          const res = await fetch("/api/ops", { cache: "no-store" });
+          if (!res.ok) throw new Error("ops " + res.status);
+          const data = await res.json();
+          render(data);
+          pulse.classList.remove("bad");
+          pulseText.textContent = "Live · refresh 3s · " + new Date().toLocaleTimeString();
+        } catch (err) {
+          pulse.classList.add("bad");
+          pulseText.textContent = "API down — " + err.message;
+          beep();
+        }
+      };
+
+      document.getElementById("holdList").addEventListener("click", async (ev) => {
+        const btn = ev.target.closest("button[data-act]");
+        if (!btn) return;
+        const name = decodeURIComponent(btn.dataset.name);
+        const act = btn.dataset.act;
+        btn.disabled = true;
+        try {
+          const url = act === "approve"
+            ? `/api/hold/${encodeURIComponent(name)}/approve`
+            : `/api/hold/${encodeURIComponent(name)}/requeue`;
+          const res = await fetch(url, { method: "POST" });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || res.status);
+          toast(act === "approve" ? "Envoyé à l’écran ✓" : "Requeue ✓");
+          await refresh();
+        } catch (err) {
+          toast("Erreur: " + err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      document.getElementById("btnRequeueAll").addEventListener("click", async () => {
+        if (!confirm("Requeue tous les holds vers inbox ?")) return;
+        const btn = document.getElementById("btnRequeueAll");
+        btn.disabled = true;
+        try {
+          const res = await fetch("/api/hold/requeue-all", { method: "POST" });
+          const data = await res.json();
+          toast(`Requeued ${ (data.requeued || []).length }`);
+          await refresh();
+        } catch (err) {
+          toast("Erreur: " + err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      refresh();
+      setInterval(refresh, 3000);
+    })();
+  </script>
+</body>
+</html>

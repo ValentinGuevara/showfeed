@@ -149,6 +149,11 @@ def write_sim_config(media_root: Path, cue_doc: dict, path: Path) -> None:
             "idle_media": "idle/brand.jpg",
             "idle_message": idle_msg,
         },
+        "ops": {
+            "hold_warn_count": 2,
+            "disk_warn_percent": 85,
+            "inbox_stuck_seconds": 30,
+        },
     }
     path.write_text(yaml.dump(cfg), encoding="utf-8")
 

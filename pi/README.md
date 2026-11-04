@@ -64,8 +64,10 @@ sudo ./install/install-app.sh
 | Endpoint | URL |
 |---|---|
 | Player | `http://<pi-ip>:8080/` |
+| Régie (ops) | `http://<pi-ip>:8080/regie` |
 | Health | `http://<pi-ip>:8080/api/health` |
 | Status | `http://<pi-ip>:8080/api/status` |
+| Ops JSON | `http://<pi-ip>:8080/api/ops` |
 | Playlist | `http://<pi-ip>:8080/api/playlist` |
 
 Logs:
@@ -101,6 +103,17 @@ sudo mv /media/showfeed/hold/IMG_1234.jpg /media/showfeed/inbox/
 ```
 
 Tune thresholds in `config.yaml` (`moderation`, `processing`, `branding`).
+
+### Régie / monitoring soirée
+
+Open **`http://<pi-ip>:8080/regie`** on your phone or laptop (same Wi‑Fi).
+
+- Live counts: inbox / approved / hold / disk
+- Alerts: hold flood, SSD nearly full, inbox stuck (watcher?), empty playlist
+- Soft beep when a new warning/critical appears
+- One-tap **Forcer écran** (skip quality gate + brand) or **Requeue** → inbox
+
+Thresholds in `config.yaml` → `ops:`.
 
 ### Idle / no blank screen
 

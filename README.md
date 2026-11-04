@@ -90,6 +90,7 @@ Open **SHOWFEED Player**, press **Menu** to set the Pi URL if it is not `http://
 - Playlist API + browser player
 - Fire TV WebView app with configurable URL
 - Master CUE local simulation (`pi/sim/`)
+- Régie page `/regie` — alerts + one-tap hold rescue
 
 **Later**
 
