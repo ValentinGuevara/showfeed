@@ -2,6 +2,8 @@
 
 Receives media from a Lumix GH6 over **Samba**, stores it on a **USB SSD**, runs basic **triage**, and serves an **HTTP playlist + fullscreen player** for Fire TV / browsers.
 
+Product pitch: [https://lyrionix.fr/live-memory-wall/](https://lyrionix.fr/live-memory-wall/)
+
 ```
 GH6 --Wi‑Fi SMB--> Pi Samba --> /media/lmw/inbox
                                   │

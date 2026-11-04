@@ -4,6 +4,8 @@ Event media pipeline: **pro capture → local triage → branded live screens**.
 
 During the party, selected photos and short clips appear on the venue screens within about a minute — not the next-day aftermovie.
 
+**Product pitch (French):** [https://lyrionix.fr/live-memory-wall/](https://lyrionix.fr/live-memory-wall/)
+
 ```
 Camera (Lumix GH6 / S1 / Osmo)
         │  Wi‑Fi (dedicated event LAN)

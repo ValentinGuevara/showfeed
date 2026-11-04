@@ -2,6 +2,8 @@
 
 Fullscreen Android TV / Fire OS app that loads the Raspberry Pi player UI in a WebView.
 
+Product pitch: [https://lyrionix.fr/live-memory-wall/](https://lyrionix.fr/live-memory-wall/)
+
 ```
 Fire TV Stick  →  http://<pi-ip>:8080/  →  approved photos & clips
 ```
