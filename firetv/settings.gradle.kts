@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "LmwFireTv"
+rootProject.name = "LiveFrame"
 include(":app")

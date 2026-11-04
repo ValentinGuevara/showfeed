@@ -1,10 +1,10 @@
-# Live Memory Wall
+# LiveFrame
 
 Event media pipeline: **pro capture → local triage → branded live screens**.
 
 During the party, selected photos and short clips appear on the venue screens within about a minute — not the next-day aftermovie.
 
-**Product pitch (French):** [https://lyrionix.fr/live-memory-wall/](https://lyrionix.fr/live-memory-wall/)
+**Product pitch (French):** [https://lyrionix.fr/liveframe/](https://lyrionix.fr/liveframe/)
 
 ```
 Camera (Lumix GH6 / S1 / Osmo)
@@ -26,7 +26,7 @@ Fire TV    Browser / iPad
 |---|---|
 | [`pi/`](pi/) | Raspberry Pi V1 — Samba receive, watcher, FastAPI playlist + web player |
 | [`firetv/`](firetv/) | Fire TV / Android TV V1 — fullscreen WebView kiosk |
-| [`index.html`](index.html) | Pitch page (French), also deployed at [lyrionix.fr/live-memory-wall](https://lyrionix.fr/live-memory-wall/) |
+| [`index.html`](index.html) | Pitch page (French), also deployed at [lyrionix.fr/liveframe](https://lyrionix.fr/liveframe/) |
 | [`assets/`](assets/) | Pitch imagery |
 
 ## Quick start
@@ -37,9 +37,9 @@ See **[pi/README.md](pi/README.md)**.
 
 ```bash
 cd pi
-sudo ./install/setup-ssd.sh       # USB SSD → /media/lmw
-sudo ./install/setup-samba.sh     # share lmw, host regie, user wall
-sudo ./install/install-app.sh     # /opt/lmw + systemd
+sudo ./install/setup-ssd.sh       # USB SSD → /media/liveframe
+sudo ./install/setup-samba.sh     # share liveframe, host regie, user wall
+sudo ./install/install-app.sh     # /opt/liveframe + systemd
 ```
 
 Player URL: `http://<pi-ip>:8080/`
@@ -61,12 +61,12 @@ adb connect <stick-ip>:5555
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Open **LMW Player**, press **Menu** to set the Pi URL if it is not `http://192.168.50.10:8080/`.
+Open **LIVEFRAME Player**, press **Menu** to set the Pi URL if it is not `http://192.168.50.10:8080/`.
 
 ### 3. Camera (GH6)
 
 1. Join the dedicated event Wi‑Fi  
-2. **Send Images to PC** → Via Network → host `regie` → share `lmw`  
+2. **Send Images to PC** → Via Network → host `regie` → share `liveframe`  
 3. User `wall` + Samba password  
 4. Prefer JPEG + short 1080p clips for live latency  
 

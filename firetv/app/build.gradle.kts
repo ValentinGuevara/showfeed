@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "fr.lyrionix.lmw.player"
+    namespace = "fr.lyrionix.liveframe"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "fr.lyrionix.lmw.player"
+        applicationId = "fr.lyrionix.liveframe"
         minSdk = 25
         targetSdk = 34
         versionCode = 1

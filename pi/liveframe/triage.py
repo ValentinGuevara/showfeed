@@ -11,7 +11,7 @@ from PIL import Image, UnidentifiedImageError
 
 from .config import Config, TriageConfig
 
-log = logging.getLogger("lmw.triage")
+log = logging.getLogger("liveframe.triage")
 
 
 class Decision(str, Enum):

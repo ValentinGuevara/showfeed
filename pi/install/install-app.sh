@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Install LMW Python app to /opt/lmw and enable systemd units.
+# Install LIVEFRAME Python app to /opt/liveframe and enable systemd units.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-TARGET="${LMW_TARGET:-/opt/lmw}"
+TARGET="${LIVEFRAME_TARGET:-/opt/liveframe}"
 
 if [[ "$(id -u)" -ne 0 ]]; then
   echo "Run as root: sudo $0" >&2
   exit 1
 fi
 
-APP_USER="${LMW_FORCE_USER:-pi}"
+APP_USER="${LIVEFRAME_FORCE_USER:-pi}"
 
-echo "==> Installing Live Memory Wall to $TARGET"
+echo "==> Installing LiveFrame to $TARGET"
 mkdir -p "$TARGET"
 rsync -a --delete \
   --exclude '.venv' \
@@ -32,19 +32,19 @@ python3 -m venv "$TARGET/.venv"
 
 chown -R "$APP_USER:$APP_USER" "$TARGET"
 
-install -m 644 "$ROOT/install/lmw-watcher.service" /etc/systemd/system/lmw-watcher.service
-install -m 644 "$ROOT/install/lmw-api.service" /etc/systemd/system/lmw-api.service
+install -m 644 "$ROOT/install/liveframe-watcher.service" /etc/systemd/system/liveframe-watcher.service
+install -m 644 "$ROOT/install/liveframe-api.service" /etc/systemd/system/liveframe-api.service
 
 # Fix User= in units if not pi
 if [[ "$APP_USER" != "pi" ]]; then
   sed -i "s/^User=pi/User=$APP_USER/; s/^Group=pi/Group=$APP_USER/" \
-    /etc/systemd/system/lmw-watcher.service \
-    /etc/systemd/system/lmw-api.service
+    /etc/systemd/system/liveframe-watcher.service \
+    /etc/systemd/system/liveframe-api.service
 fi
 
 systemctl daemon-reload
-systemctl enable lmw-watcher lmw-api
-systemctl restart lmw-watcher lmw-api
+systemctl enable liveframe-watcher liveframe-api
+systemctl restart liveframe-watcher liveframe-api
 
 IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 echo ""
@@ -52,4 +52,4 @@ echo "==> App running"
 echo "    Player:  http://${IP:-<pi-ip>}:8080/"
 echo "    Health:  http://${IP:-<pi-ip>}:8080/api/health"
 echo "    Status:  http://${IP:-<pi-ip>}:8080/api/status"
-echo "    Logs:    journalctl -u lmw-watcher -u lmw-api -f"
+echo "    Logs:    journalctl -u liveframe-watcher -u liveframe-api -f"

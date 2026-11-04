@@ -1,8 +1,8 @@
-# Live Memory Wall — Fire TV Player (V1)
+# LiveFrame — Fire TV Player (V1)
 
 Fullscreen Android TV / Fire OS app that loads the Raspberry Pi player UI in a WebView.
 
-Product pitch: [https://lyrionix.fr/live-memory-wall/](https://lyrionix.fr/live-memory-wall/)
+Product pitch: [https://lyrionix.fr/liveframe/](https://lyrionix.fr/liveframe/)
 
 ```
 Fire TV Stick  →  http://<pi-ip>:8080/  →  approved photos & clips
@@ -11,7 +11,7 @@ Fire TV Stick  →  http://<pi-ip>:8080/  →  approved photos & clips
 ## Requirements
 
 - Fire TV Stick (or any Android TV device, API 25+)
-- Raspberry Pi running the [LMW Pi stack](../pi/) on the same LAN
+- Raspberry Pi running the [LIVEFRAME Pi stack](../pi/) on the same LAN
 - Sideload install (V1 is not published on the Amazon Appstore)
 
 ## Features (V1)
@@ -53,14 +53,14 @@ adb connect <fire-tv-ip>:5555
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-3. Launch **LMW Player** from the Apps row  
+3. Launch **LIVEFRAME Player** from the Apps row  
 4. Press **Menu** on the remote → set the Pi URL if needed  
 
 ## Project layout
 
 ```
 firetv/
-  app/src/main/java/fr/lyrionix/lmw/player/
+  app/src/main/java/fr/lyrionix/liveframe/player/
     MainActivity.kt       # WebView kiosk
     SettingsActivity.kt   # Pi URL
     Prefs.kt

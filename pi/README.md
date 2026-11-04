@@ -1,11 +1,11 @@
-# Live Memory Wall — Raspberry Pi V1
+# LiveFrame — Raspberry Pi V1
 
 Receives media from a Lumix GH6 over **Samba**, stores it on a **USB SSD**, runs basic **triage**, and serves an **HTTP playlist + fullscreen player** for Fire TV / browsers.
 
-Product pitch: [https://lyrionix.fr/live-memory-wall/](https://lyrionix.fr/live-memory-wall/)
+Product pitch: [https://lyrionix.fr/liveframe/](https://lyrionix.fr/liveframe/)
 
 ```
-GH6 --Wi‑Fi SMB--> Pi Samba --> /media/lmw/inbox
+GH6 --Wi‑Fi SMB--> Pi Samba --> /media/liveframe/inbox
                                   │
                               watcher
                              ╱        ╲
@@ -18,22 +18,22 @@ GH6 --Wi‑Fi SMB--> Pi Samba --> /media/lmw/inbox
 
 | Path | Role |
 |---|---|
-| `lmw/` | Watcher, triage, API, player HTML |
+| `liveframe/` | Watcher, triage, API, player HTML |
 | `config.example.yaml` | Copy to `config.yaml` |
-| `install/setup-ssd.sh` | Mount SSD at `/media/lmw` |
-| `install/setup-samba.sh` | Share `lmw`, user `wall`, hostname `regie` |
-| `install/install-app.sh` | Install to `/opt/lmw` + systemd units |
+| `install/setup-ssd.sh` | Mount SSD at `/media/liveframe` |
+| `install/setup-samba.sh` | Share `liveframe`, user `wall`, hostname `regie` |
+| `install/install-app.sh` | Install to `/opt/liveframe` + systemd units |
 | `scripts/smoke_test.sh` | Local test without Pi hardware |
 
 ## Install on the Pi (order)
 
 ### 1. SSD
 
-Format a partition as ext4 with label `LMW` (once):
+Format a partition as ext4 with label `LIVEFRAME` (once):
 
 ```bash
 # WARNING: destroys data — use the correct /dev/sdX1
-sudo mkfs.ext4 -L LMW /dev/sda1
+sudo mkfs.ext4 -L LIVEFRAME /dev/sda1
 sudo ./install/setup-ssd.sh
 ```
 
@@ -47,7 +47,7 @@ sudo ./install/setup-samba.sh
 | Setting | Value |
 |---|---|
 | NetBIOS hostname | `regie` |
-| Share | `lmw` → `/media/lmw/inbox` |
+| Share | `liveframe` → `/media/liveframe/inbox` |
 | User | `wall` |
 
 ### 3. App + services
@@ -66,7 +66,7 @@ sudo ./install/install-app.sh
 Logs:
 
 ```bash
-journalctl -u lmw-watcher -u lmw-api -f
+journalctl -u liveframe-watcher -u liveframe-api -f
 ```
 
 ## GH6 configuration
@@ -74,7 +74,7 @@ journalctl -u lmw-watcher -u lmw-api -f
 1. Same dedicated Wi‑Fi as the Pi  
 2. **Wi‑Fi Function** → **New Connection** → **Send Images While Recording** (or *Stored*) → **PC**  
 3. **Via Network** → host `regie` (or Pi IP)  
-4. Folder / share `lmw`  
+4. Folder / share `liveframe`  
 5. User `wall` + Samba password  
 6. Prefer JPEG for live; short 1080p MP4/MOV clips are fine  
 
@@ -93,7 +93,7 @@ If the camera says destination not found: wait ~15 s, check `nmbd`, retry. Lum
 Rescue a hold:
 
 ```bash
-sudo mv /media/lmw/hold/IMG_1234.jpg /media/lmw/approved/
+sudo mv /media/liveframe/hold/IMG_1234.jpg /media/liveframe/approved/
 ```
 
 ## Test without a camera
@@ -101,9 +101,9 @@ sudo mv /media/lmw/hold/IMG_1234.jpg /media/lmw/approved/
 On the Pi:
 
 ```bash
-cp /path/to/photo.jpg /media/lmw/inbox/
+cp /path/to/photo.jpg /media/liveframe/inbox/
 # wait ~2 seconds
-ls /media/lmw/approved/
+ls /media/liveframe/approved/
 curl -s http://127.0.0.1:8080/api/playlist
 ```
 
@@ -119,12 +119,12 @@ cd pi
 ```bash
 cd pi
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-mkdir -p /tmp/lmw/{inbox,approved,hold,archive}
+mkdir -p /tmp/liveframe/{inbox,approved,hold,archive}
 cp config.example.yaml config.yaml
-# set media_root: /tmp/lmw in config.yaml
-LMW_CONFIG=./config.yaml .venv/bin/python -m lmw.api
+# set media_root: /tmp/liveframe in config.yaml
+LIVEFRAME_CONFIG=./config.yaml .venv/bin/python -m liveframe.api
 # other terminal:
-LMW_CONFIG=./config.yaml .venv/bin/python -m lmw.watcher
+LIVEFRAME_CONFIG=./config.yaml .venv/bin/python -m liveframe.watcher
 ```
 
 ## Out of scope (later)

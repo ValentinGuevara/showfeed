@@ -35,7 +35,7 @@ class TriageConfig:
 
 @dataclass
 class PlayerConfig:
-    brand_title: str = "Live Memory Wall"
+    brand_title: str = "LiveFrame"
     brand_subtitle: str = "Logo de l’event"
 
 
@@ -66,11 +66,11 @@ def resolve_config_path(explicit: str | Path | None = None) -> Path:
             raise FileNotFoundError(f"Config not found: {path}")
         return path
 
-    env = os.environ.get("LMW_CONFIG")
+    env = os.environ.get("LIVEFRAME_CONFIG")
     if env:
         path = Path(env).expanduser().resolve()
         if not path.is_file():
-            raise FileNotFoundError(f"LMW_CONFIG not found: {path}")
+            raise FileNotFoundError(f"LIVEFRAME_CONFIG not found: {path}")
         return path
 
     base = _package_dir()
@@ -89,7 +89,7 @@ def load_config(path: str | Path | None = None) -> Config:
     cfg_path = resolve_config_path(path)
     raw: dict[str, Any] = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
 
-    media_root = Path(raw.get("media_root", "/media/lmw")).expanduser().resolve()
+    media_root = Path(raw.get("media_root", "/media/liveframe")).expanduser().resolve()
     inbox_name = raw.get("inbox", "inbox")
     approved_name = raw.get("approved", "approved")
     hold_name = raw.get("hold", "hold")
@@ -123,7 +123,7 @@ def load_config(path: str | Path | None = None) -> Config:
     )
 
     player = PlayerConfig(
-        brand_title=str(player_raw.get("brand_title", "Live Memory Wall")),
+        brand_title=str(player_raw.get("brand_title", "LiveFrame")),
         brand_subtitle=str(player_raw.get("brand_subtitle", "Logo de l’event")),
     )
 

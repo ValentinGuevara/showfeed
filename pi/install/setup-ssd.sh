@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Mount USB SSD at /media/lmw and create inbox/approved/hold/archive.
+# Mount USB SSD at /media/liveframe and create inbox/approved/hold/archive.
 set -euo pipefail
 
-MOUNT_POINT="${LMW_MOUNT:-/media/lmw}"
-LABEL="${LMW_SSD_LABEL:-LMW}"
+MOUNT_POINT="${LIVEFRAME_MOUNT:-/media/liveframe}"
+LABEL="${LIVEFRAME_SSD_LABEL:-LIVEFRAME}"
 FSTAB="/etc/fstab"
 
 if [[ "$(id -u)" -ne 0 ]]; then
@@ -11,7 +11,7 @@ if [[ "$(id -u)" -ne 0 ]]; then
   exit 1
 fi
 
-echo "==> Live Memory Wall SSD setup"
+echo "==> LiveFrame SSD setup"
 echo "    Mount point: $MOUNT_POINT"
 echo "    Looking for filesystem LABEL=$LABEL (or pass DEVICE=/dev/sdX1)"
 

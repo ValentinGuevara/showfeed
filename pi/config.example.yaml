@@ -1,7 +1,7 @@
-# Live Memory Wall — Pi V1
+# LiveFrame — Pi V1
 # Copy to config.yaml and adjust paths if needed.
 
-media_root: /media/lmw
+media_root: /media/liveframe
 
 # Subfolders under media_root (created automatically if missing)
 inbox: inbox
@@ -25,5 +25,5 @@ triage:
   hash_bytes: 65536           # partial hash for duplicate detection
 
 player:
-  brand_title: "Live Memory Wall"
+  brand_title: "LiveFrame"
   brand_subtitle: "Logo de l’event"

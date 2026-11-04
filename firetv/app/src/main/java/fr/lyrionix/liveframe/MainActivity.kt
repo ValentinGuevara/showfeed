@@ -1,4 +1,4 @@
-package fr.lyrionix.lmw.player
+package fr.lyrionix.liveframe
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
             mediaPlaybackRequiresUserGesture = false
             mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             cacheMode = WebSettings.LOAD_DEFAULT
-            userAgentString = "$userAgentString LMW-FireTV/0.1"
+            userAgentString = "$userAgentString LiveFrame-FireTV/0.1"
         }
         webView.webChromeClient = WebChromeClient()
         webView.webViewClient = object : WebViewClient() {

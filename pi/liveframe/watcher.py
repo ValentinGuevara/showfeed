@@ -13,7 +13,7 @@ from watchdog.observers import Observer
 from .config import Config, load_config
 from .triage import route_file
 
-log = logging.getLogger("lmw.watcher")
+log = logging.getLogger("liveframe.watcher")
 
 
 class StableInboxHandler(FileSystemEventHandler):
@@ -25,7 +25,7 @@ class StableInboxHandler(FileSystemEventHandler):
         self._pending: dict[str, float] = {}
         self._lock = threading.Lock()
         self._stop = threading.Event()
-        self._worker = threading.Thread(target=self._poll_loop, name="lmw-stable", daemon=True)
+        self._worker = threading.Thread(target=self._poll_loop, name="liveframe-stable", daemon=True)
 
     def start(self) -> None:
         self._worker.start()
@@ -144,12 +144,12 @@ def run_watcher(config: Config) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Live Memory Wall inbox watcher")
+    parser = argparse.ArgumentParser(description="LiveFrame inbox watcher")
     parser.add_argument(
         "-c",
         "--config",
         default=None,
-        help="Path to config.yaml (default: LMW_CONFIG or ./config.yaml)",
+        help="Path to config.yaml (default: LIVEFRAME_CONFIG or ./config.yaml)",
     )
     parser.add_argument(
         "-v",

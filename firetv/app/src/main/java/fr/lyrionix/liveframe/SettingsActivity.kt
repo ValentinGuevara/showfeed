@@ -1,4 +1,4 @@
-package fr.lyrionix.lmw.player
+package fr.lyrionix.liveframe
 
 import android.os.Bundle
 import android.widget.Button
