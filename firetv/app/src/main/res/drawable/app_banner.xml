@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fire TV / Android TV banner (approx 16:9). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <path
+        android:fillColor="#0B0D12"
+        android:pathData="M0,0h320v180h-320z" />
+    <path
+        android:fillColor="#F2A93B"
+        android:pathData="M40,40h240v100h-240z" />
+    <path
+        android:fillColor="#1C1420"
+        android:pathData="M52,52h216v76h-216z" />
+    <path
+        android:fillColor="#F3ECE4"
+        android:pathData="M70,78h120v12h-120z" />
+    <path
+        android:fillColor="#A99BB0"
+        android:pathData="M70,100h80v8h-80z" />
+</vector>

@@ -1,0 +1,29 @@
+# Live Memory Wall — Pi V1
+# Copy to config.yaml and adjust paths if needed.
+
+media_root: /media/lmw
+
+# Subfolders under media_root (created automatically if missing)
+inbox: inbox
+approved: approved
+hold: hold
+archive: archive
+
+api:
+  host: "0.0.0.0"
+  port: 8080
+  max_playlist_items: 50
+  photo_display_seconds: 8
+
+triage:
+  image_extensions: [".jpg", ".jpeg", ".png"]
+  video_extensions: [".mp4", ".mov"]
+  min_image_bytes: 51200      # 50 KiB
+  min_video_bytes: 102400     # 100 KiB
+  min_image_width: 800
+  stable_seconds: 2.0         # wait until file size stops changing
+  hash_bytes: 65536           # partial hash for duplicate detection
+
+player:
+  brand_title: "Live Memory Wall"
+  brand_subtitle: "Logo de l’event"

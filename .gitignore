@@ -1,0 +1,27 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Local Pi config (keep config.example.yaml)
+pi/config.yaml
+
+# Android / Fire TV
+firetv/.gradle/
+firetv/build/
+firetv/app/build/
+firetv/local.properties
+firetv/*.iml
+firetv/.idea/
+*.apk
+*.aab
+*.ap_
+captures/
+
+# OS / editor
+.DS_Store
+.idea/
+*.swp
+*~

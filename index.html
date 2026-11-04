@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live Memory Wall</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --salle: #1c1420;
+      --velours: #2a1e2f;
+      --texte: #f3ece4;
+      --gris: #a99bb0;
+      --filet: rgba(243, 236, 228, 0.14);
+      --tungstene: #f2a93b;
+      --rose: #ff7a85;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      font-variation-settings: "wdth" 100;
+      background: var(--salle);
+      color: var(--texte);
+      line-height: 1.55;
+      font-size: 1.0625rem;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    img { display: block; max-width: 100%; }
+
+    a { color: inherit; }
+
+    :focus-visible {
+      outline: 2px solid var(--tungstene);
+      outline-offset: 3px;
+    }
+
+    .wrap {
+      width: min(100% - 3rem, var(--max));
+      margin-inline: auto;
+    }
+
+    /* Hero : l'écran dans la salle */
+
+    .hero {
+      padding: 2.5rem 0 5rem;
+      background:
+        radial-gradient(ellipse 70% 55% at 50% 62%, rgba(242, 169, 59, 0.16), transparent 70%),
+        var(--salle);
+      overflow: hidden;
+    }
+
+    .hero-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: 2rem 3rem;
+      align-items: end;
+      margin-bottom: 3rem;
+    }
+
+    h1 {
+      font-size: clamp(3.4rem, 9.5vw, 7.75rem);
+      font-weight: 750;
+      font-variation-settings: "wdth" 75, "opsz" 96;
+      line-height: 0.86;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-head p {
+      color: var(--gris);
+      font-size: 1.15rem;
+      max-width: 30rem;
+      padding-bottom: 0.4rem;
+    }
+
+    .hero-head p strong {
+      color: var(--texte);
+      font-weight: 500;
+    }
+
+    .ecran {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border: 10px solid #0d0a0f;
+      border-radius: 6px;
+      box-shadow:
+        0 0 0 1px rgba(243, 236, 228, 0.08),
+        0 40px 120px -20px rgba(242, 169, 59, 0.35),
+        0 20px 60px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+    }
+
+    .ecran img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+
+    .ecran img.on { opacity: 1; }
+
+    .ecran::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.65));
+      pointer-events: none;
+    }
+
+    .ecran-logo {
+      position: absolute;
+      top: 1.1rem;
+      right: 1.3rem;
+      z-index: 2;
+      font-weight: 700;
+      font-variation-settings: "wdth" 75;
+      font-size: 0.95rem;
+      letter-spacing: 0.01em;
+      opacity: 0.75;
+    }
+
+    .ecran-legende {
+      position: absolute;
+      left: 1.4rem;
+      bottom: 1.2rem;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: clamp(0.85rem, 1.6vw, 1.05rem);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ecran-legende i {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: var(--tungstene);
+      box-shadow: 0 0 12px var(--tungstene);
+    }
+
+    .ecran-barre {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 3px;
+      width: 100%;
+      z-index: 3;
+      background: var(--tungstene);
+      transform-origin: left;
+      transform: scaleX(0);
+    }
+
+    .ecran-barre.run {
+      animation: barre 5s linear forwards;
+    }
+
+    @keyframes barre { to { transform: scaleX(1); } }
+
+    .pied-ecran {
+      margin-top: 1.25rem;
+      color: var(--gris);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    /* Sections */
+
+    section {
+      padding: 6rem 0;
+    }
+
+    section + section { border-top: 1px solid var(--filet); }
+
+    h2 {
+      font-size: clamp(2rem, 4.5vw, 3.1rem);
+      font-weight: 700;
+      font-variation-settings: "wdth" 80, "opsz" 72;
+      line-height: 1.02;
+      letter-spacing: -0.01em;
+      max-width: 16ch;
+      margin-bottom: 1.25rem;
+    }
+
+    .chapo {
+      color: var(--gris);
+      max-width: 36rem;
+      font-size: 1.15rem;
+    }
+
+    .chapo + .chapo { margin-top: 1rem; }
+
+    .chapo strong { color: var(--texte); font-weight: 500; }
+
+    /* Moment invité */
+
+    .moment {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .moment figure {
+      position: relative;
+    }
+
+    .moment figure img {
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      width: 100%;
+      border-radius: 4px;
+    }
+
+    .moment figcaption {
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+      color: var(--gris);
+    }
+
+    /* Trajet d'une photo */
+
+    .trajet {
+      margin-top: 3.5rem;
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      position: relative;
+    }
+
+    .trajet::before {
+      content: "";
+      position: absolute;
+      top: 0.55rem;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, var(--tungstene), rgba(242, 169, 59, 0.2));
+    }
+
+    .trajet li {
+      position: relative;
+      padding: 2.25rem 1.25rem 0 0;
+    }
+
+    .trajet li::before {
+      content: "";
+      position: absolute;
+      top: 0.2rem;
+      left: 0;
+      width: 0.75rem;
+      height: 0.75rem;
+      border-radius: 50%;
+      background: var(--salle);
+      border: 2px solid var(--tungstene);
+    }
+
+    .trajet li:last-child::before {
+      background: var(--tungstene);
+      box-shadow: 0 0 16px var(--tungstene);
+    }
+
+    .trajet time {
+      display: block;
+      font-size: 1.9rem;
+      font-weight: 700;
+      font-variation-settings: "wdth" 75;
+      color: var(--tungstene);
+      line-height: 1;
+      margin-bottom: 0.7rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .trajet h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    .trajet p {
+      color: var(--gris);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    /* Le tri */
+
+    .tri {
+      margin-top: 3.5rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .tri figure img {
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      width: 100%;
+      border-radius: 4px;
+    }
+
+    .tri figure.doute img {
+      filter: blur(3px) brightness(0.7) saturate(0.6);
+    }
+
+    .tri .photo {
+      overflow: hidden;
+      border-radius: 4px;
+      position: relative;
+    }
+
+    .tri figcaption {
+      margin-top: 0.9rem;
+    }
+
+    .tri .verdict {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .tri .verdict::before {
+      content: "";
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: var(--tungstene);
+    }
+
+    .tri .doute .verdict { color: var(--rose); }
+    .tri .doute .verdict::before { background: var(--rose); }
+
+    .tri figcaption p {
+      color: var(--gris);
+      font-size: 0.95rem;
+      margin-top: 0.25rem;
+    }
+
+    .encart {
+      margin-top: 3rem;
+      padding: 1.6rem 1.75rem;
+      background: var(--velours);
+      border-left: 3px solid var(--rose);
+      border-radius: 0 4px 4px 0;
+      max-width: 44rem;
+    }
+
+    .encart h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .encart p { color: var(--gris); }
+
+    /* Toi / moi */
+
+    .duo {
+      margin-top: 3rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .duo article {
+      padding: 0.5rem 2.5rem 0.5rem 0;
+    }
+
+    .duo article + article {
+      padding: 0.5rem 0 0.5rem 2.5rem;
+      border-left: 1px solid var(--filet);
+    }
+
+    .duo h3 {
+      font-size: clamp(1.6rem, 3vw, 2.1rem);
+      font-weight: 700;
+      font-variation-settings: "wdth" 80;
+      line-height: 1.1;
+    }
+
+    .duo .qui {
+      color: var(--tungstene);
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+    }
+
+    .duo ul {
+      list-style: none;
+      margin-top: 1.25rem;
+      display: grid;
+      gap: 0.6rem;
+    }
+
+    .duo li {
+      color: var(--gris);
+      padding-left: 1.1rem;
+      position: relative;
+    }
+
+    .duo li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.7em;
+      width: 0.45rem;
+      height: 1px;
+      background: var(--tungstene);
+    }
+
+    /* Sur place */
+
+    .setup {
+      margin-top: 3rem;
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .setup div {
+      flex: 1 1 12rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--velours);
+      position: relative;
+    }
+
+    .setup div + div { margin-left: 2rem; }
+
+    .setup div + div::before {
+      content: "";
+      position: absolute;
+      left: -1.6rem;
+      top: 50%;
+      width: 1.2rem;
+      height: 1px;
+      background: var(--tungstene);
+    }
+
+    .setup div + div::after {
+      content: "";
+      position: absolute;
+      left: -0.55rem;
+      top: calc(50% - 3px);
+      border: 3.5px solid transparent;
+      border-left: 5px solid var(--tungstene);
+    }
+
+    .setup strong {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+    }
+
+    .setup span {
+      color: var(--gris);
+      font-size: 0.92rem;
+    }
+
+    /* Après */
+
+    .apres {
+      margin-top: 3rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2.5rem;
+    }
+
+    .apres h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .apres p { color: var(--gris); }
+
+    /* Matos */
+
+    .matos-grid {
+      margin-top: 3rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .matos-bloc {
+      background: var(--velours);
+      border-radius: 4px;
+      padding: 1.75rem 1.6rem 1.9rem;
+    }
+
+    .matos-bloc h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      font-variation-settings: "wdth" 80;
+      margin-bottom: 0.35rem;
+    }
+
+    .matos-bloc .sous {
+      color: var(--gris);
+      font-size: 0.92rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .matos-bloc ul {
+      list-style: none;
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .matos-bloc li {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.75rem 1rem;
+      align-items: baseline;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--filet);
+    }
+
+    .matos-bloc li:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .matos-bloc li strong {
+      display: block;
+      font-weight: 600;
+      font-size: 0.98rem;
+    }
+
+    .matos-bloc li span {
+      display: block;
+      color: var(--gris);
+      font-size: 0.88rem;
+      margin-top: 0.15rem;
+      grid-column: 1;
+    }
+
+    .matos-bloc li em {
+      font-style: normal;
+      color: var(--tungstene);
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .matos-note {
+      margin-top: 2rem;
+      color: var(--gris);
+      font-size: 0.95rem;
+      max-width: 40rem;
+    }
+
+    /* Workflow technique */
+
+    .flux {
+      margin-top: 3rem;
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.65rem;
+      align-items: stretch;
+    }
+
+    .flux li {
+      position: relative;
+      padding: 1.35rem 1.1rem 1.4rem;
+      background: var(--velours);
+      border: 1px solid var(--filet);
+      border-radius: 4px;
+      min-height: 100%;
+    }
+
+    .flux li.extra {
+      border-color: rgba(242, 169, 59, 0.35);
+      background: linear-gradient(160deg, rgba(242, 169, 59, 0.1), var(--velours) 55%);
+    }
+
+    .flux li::after {
+      content: "→";
+      position: absolute;
+      right: -0.55rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--tungstene);
+      font-size: 0.85rem;
+      font-weight: 700;
+      z-index: 2;
+      line-height: 1;
+      background: var(--salle);
+      padding: 0 0.1rem;
+    }
+
+    .flux li:nth-child(4n)::after,
+    .flux li:last-child::after { display: none; }
+
+    .flux .etape {
+      display: block;
+      color: var(--tungstene);
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-variation-settings: "wdth" 75;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.55rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .flux h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.25;
+      margin-bottom: 0.4rem;
+    }
+
+    .flux p {
+      color: var(--gris);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .flux-legende {
+      margin-top: 1.5rem;
+      color: var(--gris);
+      font-size: 0.95rem;
+      max-width: 44rem;
+    }
+
+    .flux-legende code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.85em;
+      color: var(--texte);
+      background: rgba(242, 169, 59, 0.12);
+      padding: 0.1em 0.35em;
+      border-radius: 3px;
+    }
+
+    /* Option souvenir / Apple Pay */
+
+    .reseau-split {
+      margin-top: 3rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .reseau-carte {
+      padding: 1.5rem 1.45rem 1.6rem;
+      background: var(--velours);
+      border: 1px solid var(--filet);
+      border-radius: 4px;
+    }
+
+    .reseau-carte.uplink {
+      border-color: rgba(242, 169, 59, 0.4);
+      background: linear-gradient(160deg, rgba(242, 169, 59, 0.1), var(--velours) 50%);
+    }
+
+    .reseau-carte .tag {
+      display: inline-block;
+      color: var(--tungstene);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.55rem;
+    }
+
+    .reseau-carte h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .reseau-carte p {
+      color: var(--gris);
+      font-size: 0.95rem;
+    }
+
+    .reseau-carte ul {
+      list-style: none;
+      margin-top: 1rem;
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .reseau-carte li {
+      color: var(--gris);
+      font-size: 0.92rem;
+      padding-left: 1rem;
+      position: relative;
+    }
+
+    .reseau-carte li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 0.4rem;
+      height: 1px;
+      background: var(--tungstene);
+    }
+
+    .achat-steps {
+      margin-top: 2.5rem;
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    .achat-steps li {
+      padding: 1.2rem 1.1rem;
+      border-top: 2px solid var(--tungstene);
+    }
+
+    .achat-steps strong {
+      display: block;
+      font-size: 1rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .achat-steps span {
+      color: var(--gris);
+      font-size: 0.9rem;
+    }
+
+    .valise {
+      margin-top: 2.5rem;
+      padding: 1.5rem 1.6rem;
+      border: 1px solid var(--filet);
+      border-radius: 4px;
+    }
+
+    .valise h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.85rem;
+    }
+
+    .valise ol {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem 1.5rem;
+      counter-reset: valise;
+    }
+
+    .valise li {
+      color: var(--gris);
+      font-size: 0.95rem;
+      padding-left: 1.75rem;
+      position: relative;
+      counter-increment: valise;
+    }
+
+    .valise li::before {
+      content: counter(valise);
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--tungstene);
+      font-weight: 700;
+      font-variation-settings: "wdth" 75;
+    }
+
+    /* Fin */
+
+    .fin {
+      padding: 7rem 0 8rem;
+      text-align: center;
+      background:
+        radial-gradient(ellipse 50% 60% at 50% 100%, rgba(242, 169, 59, 0.14), transparent 70%),
+        var(--salle);
+    }
+
+    .fin h2 {
+      margin-inline: auto;
+      max-width: 14ch;
+      font-size: clamp(2.4rem, 6vw, 4.2rem);
+    }
+
+    .fin .chapo {
+      margin-inline: auto;
+    }
+
+    @media (max-width: 860px) {
+      .hero-head { grid-template-columns: 1fr; }
+      .moment { grid-template-columns: 1fr; }
+      .moment figure img { aspect-ratio: 16 / 10; }
+      .trajet { grid-template-columns: 1fr; gap: 2rem; padding-left: 2rem; }
+      .trajet::before {
+        top: 0;
+        bottom: 0;
+        left: 0.35rem;
+        right: auto;
+        width: 1px;
+        height: auto;
+        background: linear-gradient(180deg, var(--tungstene), rgba(242, 169, 59, 0.2));
+      }
+      .trajet li { padding: 0; }
+      .trajet li::before { left: -2rem; top: 0.45rem; }
+      .tri { grid-template-columns: 1fr; }
+      .duo { grid-template-columns: 1fr; gap: 2.5rem; }
+      .duo article, .duo article + article { padding: 0; border-left: 0; }
+      .setup { flex-direction: column; gap: 1.5rem; }
+      .setup div + div { margin-left: 0; }
+      .setup div + div::before { left: 1.5rem; top: -1.25rem; width: 1px; height: 1rem; }
+      .setup div + div::after { display: none; }
+      .apres { grid-template-columns: 1fr; gap: 1.75rem; }
+      .matos-grid { grid-template-columns: 1fr; }
+      .valise ol { grid-template-columns: 1fr; }
+      .reseau-split { grid-template-columns: 1fr; }
+      .achat-steps { grid-template-columns: 1fr; }
+      .flux { grid-template-columns: 1fr; }
+      .flux li { padding-bottom: 1.75rem; }
+      .flux li::after {
+        content: "↓";
+        right: auto;
+        left: 1.4rem;
+        top: auto;
+        bottom: -0.85rem;
+        transform: none;
+        display: block;
+      }
+      .flux li:last-child::after { display: none; }
+      section { padding: 4.5rem 0; }
+    }
+
+    @media (min-width: 861px) and (max-width: 1100px) {
+      .flux { grid-template-columns: repeat(2, 1fr); }
+      .flux li::after { display: none; }
+    }
+
+    @media (max-width: 520px) {
+      .wrap { width: min(100% - 2rem, var(--max)); }
+      .ecran { border-width: 6px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ecran img { transition: none; }
+      .ecran-barre { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <div class="hero-head">
+        <h1>Live Memory Wall</h1>
+        <p>
+          Pendant la soirée, les invités voient la soirée.
+          <strong>Tes photos et clips courts arrivent sur les écrans une minute après</strong>,
+          pas le lendemain dans un aftermovie.
+        </p>
+      </div>
+
+      <div class="ecran" aria-label="Simulation du mur pendant une soirée">
+        <img class="on" src="assets/wall-rotonde.jpg" alt="Invités en tenue de soirée dans une rotonde" />
+        <img src="assets/wall-ambiance.jpg" alt="Foule les bras levés sous des faisceaux bleus" />
+        <img src="assets/wall-detail.jpg" alt="Détail de coupes de champagne" />
+        <img src="assets/wall-portrait.jpg" alt="Portrait d’une invitée" />
+        <span class="ecran-logo">Logo de l’event</span>
+        <span class="ecran-legende"><i></i><span id="capte">Photo · captée il y a 48 s</span></span>
+        <span class="ecran-barre" id="barre"></span>
+      </div>
+      <p class="pied-ecran">Ce que voient les invités sur l’écran principal.</p>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="wrap moment">
+        <div>
+          <h2>Le moment qu’on vend</h2>
+          <p class="chapo">
+            Quelqu’un lève les yeux vers l’écran et se reconnaît — une photo nette, ou un clip de quelques secondes
+            tourné il y a deux minutes. Il le montre à ses amis, ils se refont filmer devant le mur.
+          </p>
+          <p class="chapo">
+            C’est ça le produit : <strong>photo + contenus courts, choisis, qui reviennent dans la salle
+            pendant que la soirée se passe.</strong> Pas un mur Instagram en vrac, pas une régie TV à six caméras.
+          </p>
+        </div>
+        <figure>
+          <img src="assets/wall-portrait.jpg" alt="Portrait d’une invitée en soirée" />
+          <figcaption>Le genre de plan qui passe à l’écran : net, flatteur, choisi par toi — photo ou micro-clip.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Le trajet d’un contenu</h2>
+        <p class="chapo">Photo ou clip court : du shoot à l’écran, environ une minute et demie. Tout passe par un Wi‑Fi à nous, pas celui du lieu.</p>
+
+        <ol class="trajet">
+          <li>
+            <time>0 s</time>
+            <h3>Tu captures</h3>
+            <p>Photo ou micro-réel (quelques secondes), avec ton matos habituel.</p>
+          </li>
+          <li>
+            <time>10 s</time>
+            <h3>Tu sélectionnes</h3>
+            <p>Tu envoies seulement ce qui vaut l’écran. Le reste reste sur ta carte.</p>
+          </li>
+          <li>
+            <time>40 s</time>
+            <h3>Ça arrive en régie</h3>
+            <p>Envoi Wi‑Fi vers la régie (dossier partagé), sans cloud.</p>
+          </li>
+          <li>
+            <time>60 s</time>
+            <h3>L’IA vérifie</h3>
+            <p>Netteté, exposition, doublons, stabilité. Quelques secondes.</p>
+          </li>
+          <li>
+            <time>90 s</time>
+            <h3>Ça part en diffusion</h3>
+            <p>Vers tous les écrans connectés — TV, tablette, stick — en même temps.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Comment se fait le tri</h2>
+        <p class="chapo">
+          Tu fais le premier tri à l’œil — photo comme clip. L’IA fait le second, pour attraper ce qui t’a échappé dans le feu de l’action.
+          Personne n’a besoin de valider chaque fichier à la main.
+        </p>
+
+        <div class="tri">
+          <figure>
+            <div class="photo"><img src="assets/wall-rotonde.jpg" alt="" /></div>
+            <figcaption>
+              <span class="verdict">Diffusé</span>
+              <p>Photo nette, bien exposée. Elle entre dans la boucle tout de suite.</p>
+            </figcaption>
+          </figure>
+          <figure>
+            <div class="photo"><img src="assets/wall-ambiance.jpg" alt="" /></div>
+            <figcaption>
+              <span class="verdict">Diffusé</span>
+              <p>Clip court d’ambiance : quelques secondes de mouvement dans la boucle.</p>
+            </figcaption>
+          </figure>
+          <figure class="doute">
+            <div class="photo"><img src="assets/wall-doute.jpg" alt="" /></div>
+            <figcaption>
+              <span class="verdict">Mis de côté</span>
+              <p>Flou, trop sombre ou instable. Il ne passe pas, et le mur continue sans lui.</p>
+            </figcaption>
+          </figure>
+        </div>
+
+        <div class="encart">
+          <h3>Quand l’IA hésite</h3>
+          <p>
+            Le fichier n’est ni diffusé ni jeté : il part dans un dossier à part.
+            Si on a deux minutes, on y jette un œil et on repêche ce qui mérite.
+            Le flux vers l’écran ne s’arrête jamais pour attendre une décision.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Toi et moi</h2>
+        <div class="duo">
+          <article>
+            <p class="qui">Toi</p>
+            <h3>Photo &amp; clips</h3>
+            <ul>
+              <li>Ton matos photo et vidéo, tel quel</li>
+              <li>Le regard : ce qui mérite d’aller à l’écran</li>
+              <li>L’envoi Wi‑Fi des bons plans, une fois réglé</li>
+            </ul>
+          </article>
+          <article>
+            <p class="qui">Moi</p>
+            <h3>Régie &amp; diffusion</h3>
+            <ul>
+              <li>Le Wi‑Fi, la régie, le tri assisté</li>
+              <li>Les apps players : Fire TV Stick, iPad, autres écrans</li>
+              <li>L’habillage et l’émission multi-écrans en sync</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>La diffusion</h2>
+        <p class="chapo">
+          Une fois validé, le contenu n’est pas collé sur un seul HDMI.
+          <strong>Il part vers tous les players du lieu en même temps</strong> — autant d’écrans que la soirée en a besoin.
+        </p>
+
+        <div class="apres">
+          <article>
+            <h3>Fire TV Stick</h3>
+            <p>Branché derrière chaque TV / moniteur. App player dédiée : boucle live, logo event, sync avec la régie.</p>
+          </article>
+          <article>
+            <h3>Tablette iOS</h3>
+            <p>App iPad pour un mur mobile, un hall, un coin VIP — même flux que les grands écrans.</p>
+          </article>
+          <article>
+            <h3>Multi-devices</h3>
+            <p>Un, trois ou dix écrans : la régie pousse le même contenu partout. On ajoute un stick ou une tablette, ça se branche au flux.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Ce qu’on installe</h2>
+        <p class="chapo">Capture, réseau, régie, players. Ça tient dans une valise et ça s’installe en une heure.</p>
+
+        <div class="setup">
+          <div>
+            <strong>Tes boîtiers</strong>
+            <span>Lumix / Osmo — photo + clips, envoi Wi‑Fi vers la régie</span>
+          </div>
+          <div>
+            <strong>Un Wi‑Fi dédié</strong>
+            <span>Notre routeur, notre réseau, rien à demander au lieu</span>
+          </div>
+          <div>
+            <strong>La régie</strong>
+            <span>Reçoit, trie, habille, pousse vers les players</span>
+          </div>
+          <div>
+            <strong>Les players</strong>
+            <span>Fire TV Stick, iPad, ou autre — un par écran</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="workflow">
+      <div class="wrap">
+        <h2>Le workflow</h2>
+        <p class="chapo">
+          Du déclenchement à l’écran : tout reste en local sur le Wi‑Fi dédié.
+          Entre le tri et la diffusion, on passe les extras — qualité et branding — avant que ça parte aux players.
+        </p>
+
+        <ol class="flux">
+          <li>
+            <span class="etape">01</span>
+            <h3>Prise</h3>
+            <p>GH6 / S1 / Osmo — photo ou clip court sélectionné.</p>
+          </li>
+          <li>
+            <span class="etape">02</span>
+            <h3>Wi‑Fi → Samba</h3>
+            <p>Envoi vers le partage Samba du Pi, sans cloud.</p>
+          </li>
+          <li>
+            <span class="etape">03</span>
+            <h3>Pi + SSD</h3>
+            <p>Écriture sur le SSD (<code>/inbox</code>), pas sur la SD système.</p>
+          </li>
+          <li>
+            <span class="etape">04</span>
+            <h3>Tri</h3>
+            <p>IA + règles → <code>/approved</code> ou <code>/hold</code>.</p>
+          </li>
+          <li class="extra">
+            <span class="etape">05</span>
+            <h3>Extras qualité</h3>
+            <p>Netteté, expo légère, balance, filtres / look event — automatiques, rapides.</p>
+          </li>
+          <li class="extra">
+            <span class="etape">06</span>
+            <h3>Branding</h3>
+            <p>Logo coin, bumper, cadre, écran d’attente — charte de la soirée.</p>
+          </li>
+          <li>
+            <span class="etape">07</span>
+            <h3>Wi‑Fi → players</h3>
+            <p>Push du fichier prêt vers tous les devices connectés.</p>
+          </li>
+          <li>
+            <span class="etape">08</span>
+            <h3>Fire TV / iPad</h3>
+            <p>Boucle live sur un ou plusieurs écrans, en sync.</p>
+          </li>
+        </ol>
+
+        <p class="flux-legende">
+          Chaîne type :
+          <strong>boîtier → Samba (Pi) → SSD → tri → extras (netteté / filtres) → branding → Fire TV / iPad → écran</strong>.
+          Les extras et le branding sont le même pipeline pour tous les players : on ne refait pas le look écran par écran.
+        </p>
+      </div>
+    </section>
+
+    <section id="matos">
+      <div class="wrap">
+        <h2>Le matos</h2>
+        <p class="chapo">
+          Soirée test, une zone écran. Toi tu arrives avec ta captation ;
+          la valise régie apporte le reste.
+        </p>
+
+        <div class="matos-grid">
+          <div class="matos-bloc">
+            <h3>Chez toi</h3>
+            <p class="sous">Déjà là — on ne rachète rien.</p>
+            <ul>
+              <li>
+                <strong>Lumix S1</strong>
+                <em>déjà</em>
+                <span>Photos premium, portraits</span>
+              </li>
+              <li>
+                <strong>2× GH6</strong>
+                <em>déjà</em>
+                <span>Cœur du live — photo + clips, envoi Wi‑Fi vers le Pi</span>
+              </li>
+              <li>
+                <strong>Osmo Pocket 3</strong>
+                <em>déjà</em>
+                <span>Ambiance, roaming, micros-clips</span>
+              </li>
+              <li>
+                <strong>Batteries + cartes en rab</strong>
+                <em>déjà</em>
+                <span>Indispensable sur 4–6 h</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="matos-bloc">
+            <h3>Valise régie</h3>
+            <p class="sous">À monter une fois — réseau, inbox, diffusion.</p>
+            <ul>
+              <li>
+                <strong>Routeur Wi‑Fi + Ethernet (+ 4G option)</strong>
+                <em>1</em>
+                <span>LAN local pour le mur ; 4G pas chère si on active l’achat souvenir</span>
+              </li>
+              <li>
+                <strong>Raspberry Pi 4/5</strong>
+                <em>1</em>
+                <span>Samba inbox + scripts — alim officielle</span>
+              </li>
+              <li>
+                <strong>SSD USB3 500 Go–1 To</strong>
+                <em>1</em>
+                <span>Médias temporaires — pas sur la SD du Pi</span>
+              </li>
+              <li>
+                <strong>Fire TV Stick</strong>
+                <em>1+</em>
+                <span>Un par écran — app player, boucle + logo</span>
+              </li>
+              <li>
+                <strong>Grand écran / TV</strong>
+                <em>1</em>
+                <span>Du lieu, loué, ou le nôtre — bien placé</span>
+              </li>
+              <li>
+                <strong>Câbles + multiprise + gaffer</strong>
+                <em>—</em>
+                <span>Ethernet Pi↔routeur, HDMI, rallonges</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="valise">
+          <h3>Checklist valise MVP</h3>
+          <ol>
+            <li>Routeur dédié (Wi‑Fi + Ethernet)</li>
+            <li>Pi + alim + SD système</li>
+            <li>SSD USB3 monté (inbox)</li>
+            <li>1 Fire TV Stick + HDMI</li>
+            <li>Multiprise + gaffer</li>
+            <li>Écran sur place ou loué</li>
+          </ol>
+        </div>
+
+        <p class="matos-note">
+          Ensuite, si ça marche : 2ᵉ / 3ᵉ Stick, iPad mur mobile, spare Pi.
+          Option souvenir : même routeur avec SIM 4G + serveur web pour Apple Pay et download.
+          Le soir 1, un GH6 + un Pi + un Stick suffisent à prouver le mur — la boutique vient après.
+        </p>
+      </div>
+    </section>
+
+    <section id="souvenir">
+      <div class="wrap">
+        <h2>Option souvenir</h2>
+        <p class="chapo">
+          Un QR sur l’écran : l’invité paie en <strong>Apple Pay</strong> et télécharge sa photo / son clip.
+          Le mur live reste sur le réseau local ; seul un petit uplink 4G sert au paiement et au serveur de téléchargement.
+        </p>
+
+        <div class="reseau-split">
+          <article class="reseau-carte">
+            <span class="tag">Réseau A · local</span>
+            <h3>Wi‑Fi + Ethernet dédiés</h3>
+            <p>
+              Pour la captation et la diffusion. Pas besoin d’internet.
+              GH6, Pi, SSD, Fire TV / iPad restent isolés et stables.
+            </p>
+            <ul>
+              <li>SSID privé event</li>
+              <li>Pi en Ethernet sur le routeur</li>
+              <li>Players en Wi‑Fi local</li>
+            </ul>
+          </article>
+          <article class="reseau-carte uplink">
+            <span class="tag">Réseau B · option</span>
+            <h3>4G pas chère + serveur web</h3>
+            <p>
+              Le routeur ouvre un uplink 4G (SIM data) uniquement pour l’option souvenir :
+              page de paiement Apple Pay en ligne, puis téléchargement du média.
+            </p>
+            <ul>
+              <li>Routeur 4G/LTE (Wi‑Fi + Ethernet + slot SIM)</li>
+              <li>Serveur web (Pi ou cloud) pour le checkout + download</li>
+              <li>Apple Pay via Stripe / équivalent — HTTPS</li>
+            </ul>
+          </article>
+        </div>
+
+        <ol class="achat-steps">
+          <li>
+            <strong>1 · À l’écran</strong>
+            <span>La photo / le clip s’affiche avec un QR unique (ID du média).</span>
+          </li>
+          <li>
+            <strong>2 · Scan</strong>
+            <span>Le téléphone ouvre la page souvenir (4G invité, ou Wi‑Fi event avec uplink).</span>
+          </li>
+          <li>
+            <strong>3 · Apple Pay</strong>
+            <span>Paiement en ligne en quelques secondes — la régie n’attend pas.</span>
+          </li>
+          <li>
+            <strong>4 · Download</strong>
+            <span>Le serveur livre le fichier HD tout de suite (ou par mail / lien).</span>
+          </li>
+        </ol>
+
+        <div class="encart">
+          <h3>Pourquoi ce split</h3>
+          <p>
+            Apple Pay a besoin d’internet — impossible 100 % offline.
+            En séparant <strong>LAN mur</strong> et <strong>uplink 4G souvenir</strong>,
+            on garde un live fiable, et on active l’achat seulement quand on veut.
+            Sans SIM : le mur marche pareil, sans la boutique.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Et après la soirée</h2>
+        <p class="chapo">Photos et clips sont déjà triés et habillés. Ce qui prend d’habitude une semaine devient rapide.</p>
+
+        <div class="apres">
+          <article>
+            <h3>Le récap de fin de soirée</h3>
+            <p>Une minute de montage diffusée avant la fermeture. Les gens repartent en ayant revu leur soirée.</p>
+          </article>
+          <article>
+            <h3>Les réseaux sociaux</h3>
+            <p>Stories, posts et verticals prêts le lendemain, avec la même charte que le mur.</p>
+          </article>
+          <article>
+            <h3>L’aftermovie</h3>
+            <p>Les meilleurs plans — photo et vidéo — sont déjà repérés. Le montage part d’une sélection, pas de 400 Go de rushs.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="fin">
+      <div class="wrap">
+        <h2>On le teste sur une soirée ?</h2>
+        <p class="chapo">
+          Tes boîtiers, ma régie, un Fire TV Stick derrière un grand écran.
+          On voit si la magie prend, et on construit à partir de là.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const imgs = document.querySelectorAll(".ecran img");
+      const capte = document.getElementById("capte");
+      const barre = document.getElementById("barre");
+      const reduit = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const types = ["Photo", "Clip", "Photo", "Clip"];
+      const DUREE = 5000;
+      let i = 0;
+      let secondes = 48;
+
+      const affiche = () => {
+        const type = types[i] || "Photo";
+        const delai = secondes < 60
+          ? `${secondes} s`
+          : `1 min ${String(secondes - 60).padStart(2, "0")}`;
+        capte.textContent = `${type} · capté${type === "Photo" ? "e" : ""} il y a ${delai}`;
+      };
+
+      const relanceBarre = () => {
+        barre.classList.remove("run");
+        void barre.offsetWidth;
+        barre.classList.add("run");
+      };
+
+      affiche();
+      if (reduit) return;
+
+      relanceBarre();
+
+      setInterval(() => {
+        secondes += 1;
+        affiche();
+      }, 1000);
+
+      setInterval(() => {
+        imgs[i].classList.remove("on");
+        i = (i + 1) % imgs.length;
+        imgs[i].classList.add("on");
+        secondes = 35 + Math.floor(Math.random() * 50);
+        affiche();
+        relanceBarre();
+      }, DUREE);
+    })();
+  </script>
+</body>
+</html>

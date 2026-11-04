@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live Memory Wall</title>
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --fg: #f3ece4;
+      --accent: #f2a93b;
+      --muted: rgba(243, 236, 228, 0.7);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+    }
+    #stage {
+      position: fixed;
+      inset: 0;
+      background: #000;
+    }
+    #stage img, #stage video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+    #stage img.on, #stage video.on { opacity: 1; }
+    .chrome {
+      position: fixed;
+      z-index: 10;
+      pointer-events: none;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.7);
+    }
+    .brand {
+      top: 1.5rem;
+      right: 1.75rem;
+      text-align: right;
+    }
+    .brand .title {
+      font-weight: 700;
+      font-size: clamp(1rem, 2.2vw, 1.4rem);
+      letter-spacing: -0.02em;
+    }
+    .brand .sub {
+      margin-top: 0.2rem;
+      color: var(--muted);
+      font-size: clamp(0.75rem, 1.5vw, 0.95rem);
+    }
+    .meta {
+      left: 1.5rem;
+      bottom: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: clamp(0.85rem, 1.8vw, 1.1rem);
+      font-variant-numeric: tabular-nums;
+    }
+    .meta .dot {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+    .empty {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      gap: 0.75rem;
+      text-align: center;
+      padding: 2rem;
+    }
+    .empty h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 700;
+    }
+    .empty p { color: var(--muted); }
+    .empty.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div id="stage" aria-live="polite"></div>
+  <div class="chrome brand">
+    <div class="title" id="brandTitle">Live Memory Wall</div>
+    <div class="sub" id="brandSub">Logo de l’event</div>
+  </div>
+  <div class="chrome meta">
+    <span class="dot"></span>
+    <span id="caption">En attente…</span>
+  </div>
+  <div class="empty" id="empty">
+    <h1>Live Memory Wall</h1>
+    <p>En attente de contenus approuvés…</p>
+  </div>
+
+  <script>
+    (function () {
+      const stage = document.getElementById("stage");
+      const empty = document.getElementById("empty");
+      const caption = document.getElementById("caption");
+      const brandTitle = document.getElementById("brandTitle");
+      const brandSub = document.getElementById("brandSub");
+
+      let playlist = [];
+      let index = 0;
+      let photoSeconds = 8;
+      let timer = null;
+      let currentEl = null;
+
+      const ageLabel = (iso) => {
+        if (!iso) return "";
+        const then = Date.parse(iso);
+        if (!Number.isFinite(then)) return "";
+        const sec = Math.max(0, Math.floor((Date.now() - then) / 1000));
+        if (sec < 60) return `Capté il y a ${sec} s`;
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `Capté il y a ${m} min ${String(s).padStart(2, "0")}`;
+      };
+
+      const clearTimer = () => {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+      };
+
+      const showEmpty = (on) => {
+        empty.classList.toggle("hidden", !on);
+      };
+
+      const mountMedia = (item) => {
+        clearTimer();
+        if (currentEl) {
+          currentEl.classList.remove("on");
+          const prev = currentEl;
+          setTimeout(() => prev.remove(), 700);
+          currentEl = null;
+        }
+
+        let el;
+        if (item.type === "video") {
+          el = document.createElement("video");
+          el.src = item.url;
+          el.muted = true;
+          el.playsInline = true;
+          el.autoplay = true;
+          el.addEventListener("ended", () => next());
+          el.addEventListener("error", () => {
+            setTimeout(next, 800);
+          });
+        } else {
+          el = document.createElement("img");
+          el.alt = "";
+          el.src = item.url;
+          el.addEventListener("error", () => {
+            setTimeout(next, 800);
+          });
+          timer = setTimeout(next, photoSeconds * 1000);
+        }
+
+        stage.appendChild(el);
+        requestAnimationFrame(() => el.classList.add("on"));
+        currentEl = el;
+        caption.textContent = `${item.type === "video" ? "Clip" : "Photo"} · ${ageLabel(item.created_at)}`;
+        if (item.type === "video") {
+          el.play().catch(() => setTimeout(next, 800));
+        }
+      };
+
+      const next = () => {
+        if (!playlist.length) {
+          showEmpty(true);
+          caption.textContent = "En attente…";
+          return;
+        }
+        showEmpty(false);
+        index = index % playlist.length;
+        mountMedia(playlist[index]);
+        index = (index + 1) % playlist.length;
+      };
+
+      const refresh = async () => {
+        try {
+          const res = await fetch("/api/playlist", { cache: "no-store" });
+          if (!res.ok) throw new Error("playlist " + res.status);
+          const data = await res.json();
+          if (data.brand_title) brandTitle.textContent = data.brand_title;
+          if (data.brand_subtitle) brandSub.textContent = data.brand_subtitle;
+          if (data.photo_display_seconds) photoSeconds = data.photo_display_seconds;
+          const items = Array.isArray(data.items) ? data.items : [];
+          const same =
+            items.length === playlist.length &&
+            items.every((it, i) => it.id === playlist[i].id);
+          playlist = items;
+          if (!playlist.length) {
+            showEmpty(true);
+            caption.textContent = "En attente…";
+            clearTimer();
+            if (currentEl) {
+              currentEl.remove();
+              currentEl = null;
+            }
+            return;
+          }
+          showEmpty(false);
+          if (!currentEl || !same) {
+            index = 0;
+            next();
+          }
+        } catch (err) {
+          console.warn(err);
+        }
+      };
+
+      refresh();
+      setInterval(refresh, 5000);
+      setInterval(() => {
+        if (playlist[index - 1] || playlist[0]) {
+          const cur = playlist[(index - 1 + playlist.length) % playlist.length];
+          if (cur && currentEl) {
+            const kind = cur.type === "video" ? "Clip" : "Photo";
+            caption.textContent = `${kind} · ${ageLabel(cur.created_at)}`;
+          }
+        }
+      }, 1000);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LMW Player</string>
+    <string name="default_player_url">http://192.168.50.10:8080/</string>
+    <string name="settings_title">Player settings</string>
+    <string name="settings_url_label">Pi player URL</string>
+    <string name="settings_save">Save &amp; reload</string>
+    <string name="settings_hint">Example: http://192.168.50.10:8080/</string>
+    <string name="loading">Connecting to Live Memory Wall…</string>
+    <string name="error_load">Cannot reach the Pi. Menu → Settings to change the URL.</string>
+</resources>

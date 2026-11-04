@@ -1,0 +1,17 @@
+[Unit]
+Description=Live Memory Wall inbox watcher
+After=network.target local-fs.target
+RequiresMountsFor=/media/lmw
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/opt/lmw
+Environment=LMW_CONFIG=/opt/lmw/config.yaml
+ExecStart=/opt/lmw/.venv/bin/python -m lmw.watcher
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
