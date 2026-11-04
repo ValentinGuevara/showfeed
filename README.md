@@ -11,8 +11,8 @@ Camera (Lumix GH6 / S1 / Osmo)
         │  Wi‑Fi (dedicated event LAN)
         ▼
 Raspberry Pi  ·  Samba inbox  ·  SSD storage
-        │  triage → approved / hold
-        │  optional quality + branding (later)
+        │  triage → local AI quality → filters + brand burn-in
+        │  approved / hold (+ archive originals)
         ▼
 HTTP player (:8080)
         │
@@ -50,6 +50,16 @@ Local smoke test (no Pi hardware):
 cd pi && ./scripts/smoke_test.sh
 ```
 
+Fake Master CUE on your Mac (watcher + API + timed drops):
+
+```bash
+cd pi
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/python sim/run_master_cue.py
+# open http://127.0.0.1:8080/
+# or: .venv/bin/python sim/run_master_cue.py --exit
+```
+
 ### 2. Fire TV Stick
 
 See **[firetv/README.md](firetv/README.md)**.
@@ -74,14 +84,16 @@ Open **SHOWFEED Player**, press **Menu** to set the Pi URL if it is not `http://
 
 **In**
 
-- GH6 → Samba → SSD folders (`inbox` / `approved` / `hold`)
+- GH6 → Samba → SSD folders (`inbox` / `approved` / `hold` / `archive`)
 - Basic triage (extension, size, duplicates, image width)
+- Local quality gate (blur / exposure) + image filters + branding burn-in
 - Playlist API + browser player
 - Fire TV WebView app with configurable URL
+- Master CUE local simulation (`pi/sim/`)
 
 **Later**
 
-- AI moderation, sharpness / filters, burned-in branding
+- Stronger / optional cloud AI moderation
 - Native Fire TV player / boot kiosk
 - Souvenir QR + Apple Pay (optional 4G uplink)
 - Multi-stick provisioning

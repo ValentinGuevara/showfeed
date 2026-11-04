@@ -34,6 +34,32 @@ class TriageConfig:
 
 
 @dataclass
+class ModerationConfig:
+    """Local quality gate (blur / exposure)."""
+
+    enabled: bool = True
+    min_edge_mean: float = 12.0
+    min_brightness: float = 35.0
+    max_brightness: float = 230.0
+
+
+@dataclass
+class ProcessingConfig:
+    contrast: float = 1.05
+    color: float = 1.05
+    brightness: float = 1.0
+    sharpness: float = 1.35
+    jpeg_quality: int = 90
+
+
+@dataclass
+class BrandingConfig:
+    enabled: bool = True
+    logo_path: str | None = None
+    logo_max_width_ratio: int = 8  # width // ratio
+
+
+@dataclass
 class PlayerConfig:
     brand_title: str = "ShowFeed"
     brand_subtitle: str = "Logo de l’event"
@@ -48,6 +74,9 @@ class Config:
     archive: Path
     api: ApiConfig = field(default_factory=ApiConfig)
     triage: TriageConfig = field(default_factory=TriageConfig)
+    moderation: ModerationConfig = field(default_factory=ModerationConfig)
+    processing: ProcessingConfig = field(default_factory=ProcessingConfig)
+    branding: BrandingConfig = field(default_factory=BrandingConfig)
     player: PlayerConfig = field(default_factory=PlayerConfig)
 
     def ensure_dirs(self) -> None:
@@ -97,6 +126,9 @@ def load_config(path: str | Path | None = None) -> Config:
 
     api_raw = raw.get("api") or {}
     triage_raw = raw.get("triage") or {}
+    mod_raw = raw.get("moderation") or {}
+    proc_raw = raw.get("processing") or {}
+    brand_raw = raw.get("branding") or {}
     player_raw = raw.get("player") or {}
 
     api = ApiConfig(
@@ -122,6 +154,27 @@ def load_config(path: str | Path | None = None) -> Config:
         hash_bytes=int(triage_raw.get("hash_bytes", 65536)),
     )
 
+    moderation = ModerationConfig(
+        enabled=bool(mod_raw.get("enabled", True)),
+        min_edge_mean=float(mod_raw.get("min_edge_mean", 12.0)),
+        min_brightness=float(mod_raw.get("min_brightness", 35.0)),
+        max_brightness=float(mod_raw.get("max_brightness", 230.0)),
+    )
+
+    processing = ProcessingConfig(
+        contrast=float(proc_raw.get("contrast", 1.05)),
+        color=float(proc_raw.get("color", 1.05)),
+        brightness=float(proc_raw.get("brightness", 1.0)),
+        sharpness=float(proc_raw.get("sharpness", 1.35)),
+        jpeg_quality=int(proc_raw.get("jpeg_quality", 90)),
+    )
+
+    branding = BrandingConfig(
+        enabled=bool(brand_raw.get("enabled", True)),
+        logo_path=brand_raw.get("logo_path"),
+        logo_max_width_ratio=int(brand_raw.get("logo_max_width_ratio", 8)),
+    )
+
     player = PlayerConfig(
         brand_title=str(player_raw.get("brand_title", "ShowFeed")),
         brand_subtitle=str(player_raw.get("brand_subtitle", "Logo de l’event")),
@@ -135,5 +188,8 @@ def load_config(path: str | Path | None = None) -> Config:
         archive=media_root / archive_name,
         api=api,
         triage=triage,
+        moderation=moderation,
+        processing=processing,
+        branding=branding,
         player=player,
     )

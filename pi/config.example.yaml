@@ -24,6 +24,27 @@ triage:
   stable_seconds: 2.0         # wait until file size stops changing
   hash_bytes: 65536           # partial hash for duplicate detection
 
+# Local quality gate (blur / exposure) — no cloud AI required
+moderation:
+  enabled: true
+  min_edge_mean: 12.0         # lower = more blurry → hold
+  min_brightness: 35.0
+  max_brightness: 230.0
+
+# Look applied before branding
+processing:
+  contrast: 1.05
+  color: 1.05
+  brightness: 1.0
+  sharpness: 1.35
+  jpeg_quality: 90
+
+# Burn-in on approved stills (and ffmpeg drawtext on video if installed)
+branding:
+  enabled: true
+  logo_path: null             # optional PNG path
+  logo_max_width_ratio: 8
+
 player:
   brand_title: "ShowFeed"
   brand_subtitle: "Logo de l’event"

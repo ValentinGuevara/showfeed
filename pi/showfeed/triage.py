@@ -3,26 +3,19 @@ from __future__ import annotations
 import hashlib
 import logging
 import shutil
-from dataclasses import dataclass
-from enum import Enum
 from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
 
 from .config import Config, TriageConfig
+from .models import Decision, TriageResult
+from .moderation import moderate
+from .process import process_and_approve
 
 log = logging.getLogger("showfeed.triage")
 
-
-class Decision(str, Enum):
-    APPROVED = "approved"
-    HOLD = "hold"
-
-
-@dataclass
-class TriageResult:
-    decision: Decision
-    reason: str
+# Re-export for callers
+__all__ = ["Decision", "TriageResult", "evaluate", "route_file"]
 
 
 def _partial_hash(path: Path, nbytes: int) -> str:
@@ -94,7 +87,6 @@ def evaluate(path: Path, cfg: TriageConfig, approved_dir: Path) -> TriageResult:
             )
         return TriageResult(Decision.APPROVED, f"image_ok:{width}px")
 
-    # Video V1: extension + size only
     return TriageResult(Decision.APPROVED, "video_ok")
 
 
@@ -112,12 +104,23 @@ def _unique_dest(dest_dir: Path, name: str) -> Path:
         n += 1
 
 
+def _move_to_hold(path: Path, config: Config, reason: str) -> TriageResult:
+    config.hold.mkdir(parents=True, exist_ok=True)
+    dest = _unique_dest(config.hold, path.name)
+    try:
+        shutil.move(str(path), str(dest))
+    except OSError as exc:
+        log.error("Failed to move %s → hold: %s", path, exc)
+        return TriageResult(Decision.HOLD, f"move_error:{exc}")
+    log.info("%s → hold (%s)", path.name, reason)
+    return TriageResult(Decision.HOLD, reason)
+
+
 def route_file(path: Path, config: Config) -> TriageResult:
-    """Evaluate and move path from inbox into approved/ or hold/."""
+    """Inbox → basic triage → AI moderation → filters/branding → approved|hold."""
     if not path.is_file():
         return TriageResult(Decision.HOLD, "not_a_file")
 
-    # Ignore macOS / Samba junk
     if path.name.startswith(".") or path.name.startswith("._"):
         try:
             path.unlink(missing_ok=True)
@@ -125,16 +128,34 @@ def route_file(path: Path, config: Config) -> TriageResult:
             pass
         return TriageResult(Decision.HOLD, "ignored_dotfile")
 
-    result = evaluate(path, config.triage, config.approved)
-    dest_dir = config.approved if result.decision == Decision.APPROVED else config.hold
-    dest_dir.mkdir(parents=True, exist_ok=True)
-    dest = _unique_dest(dest_dir, path.name)
+    basic = evaluate(path, config.triage, config.approved)
+    if basic.decision == Decision.HOLD:
+        return _move_to_hold(path, config, basic.reason)
+
+    suffix = path.suffix.lower()
+    is_image = suffix in set(config.triage.image_extensions)
+
+    ai = moderate(path, config.moderation, is_image=is_image)
+    if ai.decision == Decision.HOLD:
+        return _move_to_hold(path, config, ai.reason)
 
     try:
-        shutil.move(str(path), str(dest))
-    except OSError as exc:
-        log.error("Failed to move %s → %s: %s", path, dest, exc)
-        return TriageResult(Decision.HOLD, f"move_error:{exc}")
+        dest = process_and_approve(path, config, is_image=is_image)
+    except Exception as exc:
+        log.exception("Processing failed for %s", path)
+        return _move_to_hold(path, config, f"process_error:{exc}")
 
-    log.info("%s → %s (%s)", path.name, result.decision.value, result.reason)
-    return result
+    # Archive original, remove from inbox
+    try:
+        config.archive.mkdir(parents=True, exist_ok=True)
+        arch = _unique_dest(config.archive, path.name)
+        shutil.move(str(path), str(arch))
+    except OSError:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+    reason = f"{basic.reason}|{ai.reason}|processed→{dest.name}"
+    log.info("%s → approved (%s)", path.name, reason)
+    return TriageResult(Decision.APPROVED, reason)

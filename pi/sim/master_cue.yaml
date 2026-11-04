@@ -1,0 +1,68 @@
+# Fake Master CUE — local production simulation for ShowFeed
+# Times are seconds from GO.
+
+name: "MASTER CUE · Soirée simu"
+media_root: /tmp/showfeed-sim
+api_host: "127.0.0.1"
+api_port: 8080
+stable_seconds: 0.6
+
+player:
+  brand_title: "ShowFeed"
+  brand_subtitle: "SIM · Event Demo"
+
+cues:
+  - at: 0.0
+    id: CUE-01
+    label: "GO — ouverture"
+    action: announce
+
+  - at: 1.0
+    id: CUE-10
+    label: "Drop photo entrée (OK)"
+    action: drop
+    kind: photo
+    quality: good
+    filename: cue10_entree.jpg
+
+  - at: 4.0
+    id: CUE-20
+    label: "Drop photo floue (HOLD attendu)"
+    action: drop
+    kind: photo
+    quality: blurry
+    filename: cue20_blur.jpg
+
+  - at: 7.0
+    id: CUE-30
+    label: "Drop portrait (OK + branding)"
+    action: drop
+    kind: photo
+    quality: good
+    filename: cue30_portrait.jpg
+
+  - at: 10.0
+    id: CUE-40
+    label: "Drop sous-exposée (HOLD attendu)"
+    action: drop
+    kind: photo
+    quality: dark
+    filename: cue40_dark.jpg
+
+  - at: 13.0
+    id: CUE-50
+    label: "Drop ambiance (OK)"
+    action: drop
+    kind: photo
+    quality: good
+    filename: cue50_ambiance.jpg
+
+  - at: 16.0
+    id: CUE-90
+    label: "Status régie"
+    action: status
+
+  - at: 18.0
+    id: CUE-99
+    label: "END — player sur http://127.0.0.1:8080/"
+    action: announce
