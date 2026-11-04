@@ -1,11 +1,11 @@
-# LiveFrame — Raspberry Pi V1
+# ShowFeed — Raspberry Pi V1
 
 Receives media from a Lumix GH6 over **Samba**, stores it on a **USB SSD**, runs basic **triage**, and serves an **HTTP playlist + fullscreen player** for Fire TV / browsers.
 
-Product pitch: [https://lyrionix.fr/liveframe/](https://lyrionix.fr/liveframe/)
+Product pitch: [https://lyrionix.fr/showfeed/](https://lyrionix.fr/showfeed/)
 
 ```
-GH6 --Wi‑Fi SMB--> Pi Samba --> /media/liveframe/inbox
+GH6 --Wi‑Fi SMB--> Pi Samba --> /media/showfeed/inbox
                                   │
                               watcher
                              ╱        ╲
@@ -18,22 +18,22 @@ GH6 --Wi‑Fi SMB--> Pi Samba --> /media/liveframe/inbox
 
 | Path | Role |
 |---|---|
-| `liveframe/` | Watcher, triage, API, player HTML |
+| `showfeed/` | Watcher, triage, API, player HTML |
 | `config.example.yaml` | Copy to `config.yaml` |
-| `install/setup-ssd.sh` | Mount SSD at `/media/liveframe` |
-| `install/setup-samba.sh` | Share `liveframe`, user `wall`, hostname `regie` |
-| `install/install-app.sh` | Install to `/opt/liveframe` + systemd units |
+| `install/setup-ssd.sh` | Mount SSD at `/media/showfeed` |
+| `install/setup-samba.sh` | Share `showfeed`, user `wall`, hostname `regie` |
+| `install/install-app.sh` | Install to `/opt/showfeed` + systemd units |
 | `scripts/smoke_test.sh` | Local test without Pi hardware |
 
 ## Install on the Pi (order)
 
 ### 1. SSD
 
-Format a partition as ext4 with label `LIVEFRAME` (once):
+Format a partition as ext4 with label `SHOWFEED` (once):
 
 ```bash
 # WARNING: destroys data — use the correct /dev/sdX1
-sudo mkfs.ext4 -L LIVEFRAME /dev/sda1
+sudo mkfs.ext4 -L SHOWFEED /dev/sda1
 sudo ./install/setup-ssd.sh
 ```
 
@@ -47,7 +47,7 @@ sudo ./install/setup-samba.sh
 | Setting | Value |
 |---|---|
 | NetBIOS hostname | `regie` |
-| Share | `liveframe` → `/media/liveframe/inbox` |
+| Share | `showfeed` → `/media/showfeed/inbox` |
 | User | `wall` |
 
 ### 3. App + services
@@ -66,7 +66,7 @@ sudo ./install/install-app.sh
 Logs:
 
 ```bash
-journalctl -u liveframe-watcher -u liveframe-api -f
+journalctl -u showfeed-watcher -u showfeed-api -f
 ```
 
 ## GH6 configuration
@@ -74,7 +74,7 @@ journalctl -u liveframe-watcher -u liveframe-api -f
 1. Same dedicated Wi‑Fi as the Pi  
 2. **Wi‑Fi Function** → **New Connection** → **Send Images While Recording** (or *Stored*) → **PC**  
 3. **Via Network** → host `regie` (or Pi IP)  
-4. Folder / share `liveframe`  
+4. Folder / share `showfeed`  
 5. User `wall` + Samba password  
 6. Prefer JPEG for live; short 1080p MP4/MOV clips are fine  
 
@@ -93,7 +93,7 @@ If the camera says destination not found: wait ~15 s, check `nmbd`, retry. Lum
 Rescue a hold:
 
 ```bash
-sudo mv /media/liveframe/hold/IMG_1234.jpg /media/liveframe/approved/
+sudo mv /media/showfeed/hold/IMG_1234.jpg /media/showfeed/approved/
 ```
 
 ## Test without a camera
@@ -101,9 +101,9 @@ sudo mv /media/liveframe/hold/IMG_1234.jpg /media/liveframe/approved/
 On the Pi:
 
 ```bash
-cp /path/to/photo.jpg /media/liveframe/inbox/
+cp /path/to/photo.jpg /media/showfeed/inbox/
 # wait ~2 seconds
-ls /media/liveframe/approved/
+ls /media/showfeed/approved/
 curl -s http://127.0.0.1:8080/api/playlist
 ```
 
@@ -119,12 +119,12 @@ cd pi
 ```bash
 cd pi
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-mkdir -p /tmp/liveframe/{inbox,approved,hold,archive}
+mkdir -p /tmp/showfeed/{inbox,approved,hold,archive}
 cp config.example.yaml config.yaml
-# set media_root: /tmp/liveframe in config.yaml
-LIVEFRAME_CONFIG=./config.yaml .venv/bin/python -m liveframe.api
+# set media_root: /tmp/showfeed in config.yaml
+SHOWFEED_CONFIG=./config.yaml .venv/bin/python -m showfeed.api
 # other terminal:
-LIVEFRAME_CONFIG=./config.yaml .venv/bin/python -m liveframe.watcher
+SHOWFEED_CONFIG=./config.yaml .venv/bin/python -m showfeed.watcher
 ```
 
 ## Out of scope (later)

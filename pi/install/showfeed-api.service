@@ -1,0 +1,17 @@
+[Unit]
+Description=ShowFeed API + player
+After=network.target local-fs.target
+RequiresMountsFor=/media/showfeed
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/opt/showfeed
+Environment=SHOWFEED_CONFIG=/opt/showfeed/config.yaml
+ExecStart=/opt/showfeed/.venv/bin/python -m showfeed.api
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

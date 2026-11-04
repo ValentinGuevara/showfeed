@@ -1,4 +1,4 @@
-package fr.lyrionix.liveframe
+package fr.lyrionix.showfeed
 
 import android.os.Bundle
 import android.widget.Button

@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "LiveFrame"
+rootProject.name = "ShowFeed"
 include(":app")

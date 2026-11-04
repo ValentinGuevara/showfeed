@@ -1,9 +1,9 @@
-package fr.lyrionix.liveframe
+package fr.lyrionix.showfeed
 
 import android.content.Context
 
 object Prefs {
-    private const val NAME = "liveframe_player"
+    private const val NAME = "showfeed_player"
     private const val KEY_URL = "player_url"
 
     fun getPlayerUrl(context: Context): String {

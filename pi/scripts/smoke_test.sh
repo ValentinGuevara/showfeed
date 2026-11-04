@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-TMP="$(mktemp -d /tmp/liveframe-smoke.XXXXXX)"
+TMP="$(mktemp -d /tmp/showfeed-smoke.XXXXXX)"
 cleanup() { rm -rf "$TMP"; }
 trap cleanup EXIT
 
@@ -44,8 +44,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, sys.argv[1])
-from liveframe.config import load_config
-from liveframe.triage import route_file
+from showfeed.config import load_config
+from showfeed.triage import route_file
 
 cfg = load_config(Path(sys.argv[2]) / "config.yaml")
 for p in sorted(cfg.inbox.iterdir()):

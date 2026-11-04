@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "fr.lyrionix.liveframe"
+    namespace = "fr.lyrionix.showfeed"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "fr.lyrionix.liveframe"
+        applicationId = "fr.lyrionix.showfeed"
         minSdk = 25
         targetSdk = 34
         versionCode = 1

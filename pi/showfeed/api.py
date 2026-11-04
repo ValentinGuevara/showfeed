@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import Config, load_config
 
-log = logging.getLogger("liveframe.api")
+log = logging.getLogger("showfeed.api")
 
 IMAGE_EXT = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 VIDEO_EXT = {".mp4", ".mov", ".webm", ".m4v"}
@@ -73,7 +73,7 @@ def build_playlist(config: Config) -> list[dict]:
 
 def create_app(config: Config) -> FastAPI:
     config.ensure_dirs()
-    app = FastAPI(title="LiveFrame", version="0.1.0")
+    app = FastAPI(title="ShowFeed", version="0.1.0")
     player_html = Path(__file__).with_name("player.html")
 
     @app.get("/api/health")
@@ -131,7 +131,7 @@ def create_app(config: Config) -> FastAPI:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="LiveFrame API + player")
+    parser = argparse.ArgumentParser(description="ShowFeed API + player")
     parser.add_argument("-c", "--config", default=None)
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)

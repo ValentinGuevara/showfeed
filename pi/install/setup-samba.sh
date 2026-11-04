@@ -2,19 +2,19 @@
 # Samba share for Lumix GH6 "Send images to PC" → inbox on SSD.
 set -euo pipefail
 
-MOUNT_POINT="${LIVEFRAME_MOUNT:-/media/liveframe}"
-SHARE_NAME="${LIVEFRAME_SHARE:-liveframe}"
-SAMBA_USER="${LIVEFRAME_SAMBA_USER:-wall}"
-WORKGROUP="${LIVEFRAME_WORKGROUP:-WORKGROUP}"
-HOSTNAME_SHORT="${LIVEFRAME_HOSTNAME:-regie}"
-FORCE_USER="${LIVEFRAME_FORCE_USER:-pi}"
+MOUNT_POINT="${SHOWFEED_MOUNT:-/media/showfeed}"
+SHARE_NAME="${SHOWFEED_SHARE:-showfeed}"
+SAMBA_USER="${SHOWFEED_SAMBA_USER:-wall}"
+WORKGROUP="${SHOWFEED_WORKGROUP:-WORKGROUP}"
+HOSTNAME_SHORT="${SHOWFEED_HOSTNAME:-regie}"
+FORCE_USER="${SHOWFEED_FORCE_USER:-pi}"
 
 if [[ "$(id -u)" -ne 0 ]]; then
   echo "Run as root: sudo $0" >&2
   exit 1
 fi
 
-echo "==> LiveFrame Samba setup"
+echo "==> ShowFeed Samba setup"
 echo "    Share: //$HOSTNAME_SHORT/$SHARE_NAME → $MOUNT_POINT/inbox"
 echo "    User:  $SAMBA_USER  Workgroup: $WORKGROUP"
 
@@ -57,7 +57,7 @@ fi
 if ! grep -q "^\[$SHARE_NAME\]" /etc/samba/smb.conf; then
   cat >> /etc/samba/smb.conf <<EOF
 
-# --- LiveFrame ---
+# --- ShowFeed ---
 [$SHARE_NAME]
    path = $INBOX
    browseable = yes

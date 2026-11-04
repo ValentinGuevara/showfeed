@@ -1,1 +1,1 @@
-# LiveFrame Fire TV player — keep defaults for V1
+# ShowFeed Fire TV player — keep defaults for V1
