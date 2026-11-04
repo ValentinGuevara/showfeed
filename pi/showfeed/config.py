@@ -63,6 +63,10 @@ class BrandingConfig:
 class PlayerConfig:
     brand_title: str = "ShowFeed"
     brand_subtitle: str = "Logo de l’event"
+    # Shown when approved playlist is empty — avoid blank Fire TV screen
+    idle_enabled: bool = True
+    idle_media: str | None = None  # absolute or relative to media_root
+    idle_message: str = "En attente de contenus…"
 
 
 @dataclass
@@ -178,6 +182,11 @@ def load_config(path: str | Path | None = None) -> Config:
     player = PlayerConfig(
         brand_title=str(player_raw.get("brand_title", "ShowFeed")),
         brand_subtitle=str(player_raw.get("brand_subtitle", "Logo de l’event")),
+        idle_enabled=bool(player_raw.get("idle_enabled", True)),
+        idle_media=player_raw.get("idle_media"),
+        idle_message=str(
+            player_raw.get("idle_message", "En attente de contenus…")
+        ),
     )
 
     return Config(

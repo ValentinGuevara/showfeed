@@ -102,6 +102,18 @@ sudo mv /media/showfeed/hold/IMG_1234.jpg /media/showfeed/inbox/
 
 Tune thresholds in `config.yaml` (`moderation`, `processing`, `branding`).
 
+### Idle / no blank screen
+
+When `approved/` is empty, the player loops `player.idle_media` (image or muted video) with `idle_message` overlay. Place a branded still on the SSD:
+
+```bash
+sudo mkdir -p /media/showfeed/idle
+sudo cp /path/to/brand.jpg /media/showfeed/idle/brand.jpg
+# config: idle_media: idle/brand.jpg
+```
+
+If the file is missing, falls back to the text waiting screen. With content in `approved/`, the playlist loops forever.
+
 ## Test without a camera
 
 On the Pi:

@@ -99,8 +99,32 @@ def make_fixture(dest: Path, quality: str, label: str) -> None:
     img.save(dest, quality=92)
 
 
+def make_idle_brand(dest: Path, title: str, subtitle: str, message: str) -> None:
+    """Branded still used while approved/ is empty."""
+    w, h = 1920, 1080
+    img = Image.new("RGB", (w, h), (11, 13, 18))
+    draw = ImageDraw.Draw(img)
+    for y in range(h):
+        t = y / h
+        r = int(11 + t * 18)
+        g = int(13 + t * 12)
+        b = int(18 + t * 28)
+        draw.line([(0, y), (w, y)], fill=(r, g, b))
+    draw.ellipse([w * 0.55, -120, w * 1.15, h * 0.55], fill=(28, 24, 40))
+    draw.text((96, h // 2 - 90), title, font=_font(72), fill=(243, 236, 228))
+    draw.text((96, h // 2 - 10), subtitle, font=_font(36), fill=(242, 169, 59))
+    draw.text((96, h // 2 + 70), message, font=_font(28), fill=(180, 170, 160))
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    img.save(dest, quality=92)
+
+
 def write_sim_config(media_root: Path, cue_doc: dict, path: Path) -> None:
     player = cue_doc.get("player") or {}
+    idle_msg = player.get("idle_message", "Bientôt sur vos écrans")
+    title = player.get("brand_title", "ShowFeed")
+    subtitle = player.get("brand_subtitle", "SIM")
+    idle_path = media_root / "idle" / "brand.jpg"
+    make_idle_brand(idle_path, title, subtitle, idle_msg)
     cfg = {
         "media_root": str(media_root),
         "api": {
@@ -119,8 +143,11 @@ def write_sim_config(media_root: Path, cue_doc: dict, path: Path) -> None:
         "processing": {"sharpness": 1.4, "contrast": 1.08},
         "branding": {"enabled": True},
         "player": {
-            "brand_title": player.get("brand_title", "ShowFeed"),
-            "brand_subtitle": player.get("brand_subtitle", "SIM"),
+            "brand_title": title,
+            "brand_subtitle": subtitle,
+            "idle_enabled": True,
+            "idle_media": "idle/brand.jpg",
+            "idle_message": idle_msg,
         },
     }
     path.write_text(yaml.dump(cfg), encoding="utf-8")

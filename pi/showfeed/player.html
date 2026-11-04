@@ -36,6 +36,7 @@
       transition: opacity 0.6s ease;
     }
     #stage img.on, #stage video.on { opacity: 1; }
+    #stage img.cover, #stage video.cover { object-fit: cover; }
     .chrome {
       position: fixed;
       z-index: 10;
@@ -81,6 +82,8 @@
       gap: 0.75rem;
       text-align: center;
       padding: 2rem;
+      z-index: 5;
+      background: radial-gradient(ellipse at center, #161a24 0%, #0b0d12 70%);
     }
     .empty h1 {
       font-size: clamp(1.6rem, 4vw, 2.4rem);
@@ -88,6 +91,26 @@
     }
     .empty p { color: var(--muted); }
     .empty.hidden { display: none; }
+    .idle-msg {
+      position: fixed;
+      left: 50%;
+      bottom: 12%;
+      transform: translateX(-50%);
+      z-index: 8;
+      text-align: center;
+      pointer-events: none;
+      padding: 0.85rem 1.4rem;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.45);
+      text-shadow: 0 2px 12px rgba(0,0,0,0.7);
+      max-width: min(90vw, 36rem);
+    }
+    .idle-msg.hidden { display: none; }
+    .idle-msg .line {
+      font-size: clamp(1rem, 2.4vw, 1.45rem);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
   </style>
 </head>
 <body>
@@ -100,24 +123,32 @@
     <span class="dot"></span>
     <span id="caption">En attente…</span>
   </div>
+  <div class="idle-msg hidden" id="idleMsg">
+    <div class="line" id="idleMsgText"></div>
+  </div>
   <div class="empty" id="empty">
     <h1>ShowFeed</h1>
-    <p>En attente de contenus approuvés…</p>
+    <p id="emptyText">En attente de contenus approuvés…</p>
   </div>
 
   <script>
     (function () {
       const stage = document.getElementById("stage");
       const empty = document.getElementById("empty");
+      const emptyText = document.getElementById("emptyText");
       const caption = document.getElementById("caption");
       const brandTitle = document.getElementById("brandTitle");
       const brandSub = document.getElementById("brandSub");
+      const idleMsg = document.getElementById("idleMsg");
+      const idleMsgText = document.getElementById("idleMsgText");
 
       let playlist = [];
       let index = 0;
       let photoSeconds = 8;
       let timer = null;
       let currentEl = null;
+      let mode = "empty"; // playlist | idle | empty
+      let idle = { enabled: true, url: null, type: null, message: "", available: false };
 
       const ageLabel = (iso) => {
         if (!iso) return "";
@@ -137,11 +168,7 @@
         }
       };
 
-      const showEmpty = (on) => {
-        empty.classList.toggle("hidden", !on);
-      };
-
-      const mountMedia = (item) => {
+      const clearStage = () => {
         clearTimer();
         if (currentEl) {
           currentEl.classList.remove("on");
@@ -149,6 +176,72 @@
           setTimeout(() => prev.remove(), 700);
           currentEl = null;
         }
+      };
+
+      const setIdleChrome = (on, message) => {
+        if (on && message) {
+          idleMsgText.textContent = message;
+          idleMsg.classList.remove("hidden");
+        } else {
+          idleMsg.classList.add("hidden");
+        }
+      };
+
+      const showFallbackEmpty = (message) => {
+        mode = "empty";
+        clearStage();
+        empty.classList.remove("hidden");
+        emptyText.textContent = message || "En attente de contenus approuvés…";
+        setIdleChrome(false);
+        caption.textContent = "En attente…";
+      };
+
+      const mountIdle = () => {
+        if (!idle.enabled || !idle.available || !idle.url) {
+          showFallbackEmpty(idle.message);
+          return;
+        }
+        mode = "idle";
+        empty.classList.add("hidden");
+        setIdleChrome(true, idle.message);
+        caption.textContent = "Idle · branding";
+        clearStage();
+
+        let el;
+        if (idle.type === "video") {
+          el = document.createElement("video");
+          el.src = idle.url + "?t=" + Date.now();
+          el.muted = true;
+          el.loop = true;
+          el.playsInline = true;
+          el.autoplay = true;
+          el.classList.add("cover");
+          el.addEventListener("error", () => showFallbackEmpty(idle.message));
+        } else {
+          el = document.createElement("img");
+          el.alt = "";
+          el.src = idle.url + "?t=" + Date.now();
+          el.classList.add("cover");
+          el.addEventListener("error", () => showFallbackEmpty(idle.message));
+          // Soft refresh still while waiting for first approved shots
+          timer = setTimeout(() => {
+            if (mode === "idle") mountIdle();
+          }, Math.max(photoSeconds, 12) * 1000);
+        }
+
+        stage.appendChild(el);
+        requestAnimationFrame(() => el.classList.add("on"));
+        currentEl = el;
+        if (idle.type === "video") {
+          el.play().catch(() => showFallbackEmpty(idle.message));
+        }
+      };
+
+      const mountMedia = (item) => {
+        mode = "playlist";
+        empty.classList.add("hidden");
+        setIdleChrome(false);
+        clearStage();
 
         let el;
         if (item.type === "video") {
@@ -182,11 +275,9 @@
 
       const next = () => {
         if (!playlist.length) {
-          showEmpty(true);
-          caption.textContent = "En attente…";
+          mountIdle();
           return;
         }
-        showEmpty(false);
         index = index % playlist.length;
         mountMedia(playlist[index]);
         index = (index + 1) % playlist.length;
@@ -200,23 +291,26 @@
           if (data.brand_title) brandTitle.textContent = data.brand_title;
           if (data.brand_subtitle) brandSub.textContent = data.brand_subtitle;
           if (data.photo_display_seconds) photoSeconds = data.photo_display_seconds;
+          if (data.idle) idle = data.idle;
+
           const items = Array.isArray(data.items) ? data.items : [];
           const same =
             items.length === playlist.length &&
             items.every((it, i) => it.id === playlist[i].id);
+          const wasEmpty = playlist.length === 0;
           playlist = items;
+
           if (!playlist.length) {
-            showEmpty(true);
-            caption.textContent = "En attente…";
-            clearTimer();
-            if (currentEl) {
-              currentEl.remove();
-              currentEl = null;
+            if (mode !== "idle" && mode !== "empty") {
+              mountIdle();
+            } else if (mode === "empty" && idle.available) {
+              mountIdle();
             }
             return;
           }
-          showEmpty(false);
-          if (!currentEl || !same) {
+
+          // First content after idle → jump into playlist
+          if (wasEmpty || mode === "idle" || mode === "empty" || !currentEl || !same) {
             index = 0;
             next();
           }
@@ -228,12 +322,11 @@
       refresh();
       setInterval(refresh, 5000);
       setInterval(() => {
-        if (playlist[index - 1] || playlist[0]) {
-          const cur = playlist[(index - 1 + playlist.length) % playlist.length];
-          if (cur && currentEl) {
-            const kind = cur.type === "video" ? "Clip" : "Photo";
-            caption.textContent = `${kind} · ${ageLabel(cur.created_at)}`;
-          }
+        if (mode !== "playlist" || !playlist.length || !currentEl) return;
+        const cur = playlist[(index - 1 + playlist.length) % playlist.length];
+        if (cur) {
+          const kind = cur.type === "video" ? "Clip" : "Photo";
+          caption.textContent = `${kind} · ${ageLabel(cur.created_at)}`;
         }
       }, 1000);
     })();

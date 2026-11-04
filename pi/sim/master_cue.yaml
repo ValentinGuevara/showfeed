@@ -10,6 +10,7 @@ stable_seconds: 0.6
 player:
   brand_title: "ShowFeed"
   brand_subtitle: "SIM · Event Demo"
+  idle_message: "Bientôt sur vos écrans"
 
 cues:
   - at: 0.0

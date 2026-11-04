@@ -48,3 +48,7 @@ branding:
 player:
   brand_title: "ShowFeed"
   brand_subtitle: "Logo de l’event"
+  # Loop this asset when approved/ is empty (no blank screen)
+  idle_enabled: true
+  idle_media: idle/brand.jpg   # under media_root, or absolute path
+  idle_message: "Bientôt sur vos écrans"

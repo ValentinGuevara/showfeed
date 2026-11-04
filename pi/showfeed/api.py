@@ -71,8 +71,36 @@ def build_playlist(config: Config) -> list[dict]:
     return items
 
 
+def resolve_idle_path(config: Config) -> Path | None:
+    raw = config.player.idle_media
+    if not raw:
+        return None
+    path = Path(raw).expanduser()
+    if not path.is_absolute():
+        path = (config.media_root / path).resolve()
+    else:
+        path = path.resolve()
+    if not path.is_file():
+        return None
+    if _media_type(path) is None:
+        return None
+    return path
+
+
+def idle_payload(config: Config) -> dict:
+    path = resolve_idle_path(config)
+    return {
+        "enabled": bool(config.player.idle_enabled),
+        "url": "/idle" if path else None,
+        "type": _media_type(path) if path else None,
+        "message": config.player.idle_message,
+        "available": path is not None,
+    }
+
+
 def create_app(config: Config) -> FastAPI:
     config.ensure_dirs()
+    (config.media_root / "idle").mkdir(parents=True, exist_ok=True)
     app = FastAPI(title="ShowFeed", version="0.1.0")
     player_html = Path(__file__).with_name("player.html")
 
@@ -94,7 +122,16 @@ def create_app(config: Config) -> FastAPI:
             "photo_display_seconds": config.api.photo_display_seconds,
             "brand_title": config.player.brand_title,
             "brand_subtitle": config.player.brand_subtitle,
+            "idle": idle_payload(config),
         }
+
+    @app.get("/idle")
+    def idle_file() -> FileResponse:
+        path = resolve_idle_path(config)
+        if not path or not config.player.idle_enabled:
+            raise HTTPException(status_code=404, detail="idle media not configured")
+        media = mimetypes.guess_type(str(path))[0] or "application/octet-stream"
+        return FileResponse(path, media_type=media)
 
     @app.get("/api/status")
     def status() -> dict:
