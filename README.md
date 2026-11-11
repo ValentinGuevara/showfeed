@@ -4,21 +4,30 @@ Event media pipeline: **pro capture → local triage → branded live screens**.
 
 During the party, selected photos and short clips appear on the venue screens within about a minute — not the next-day aftermovie.
 
-**Product pitch (French):** [https://lyrionix.fr/showfeed/](https://lyrionix.fr/showfeed/)
+**Product pitch (French):** [https://lyrionix.fr/showfeed/](https://lyrionix.fr/showfeed/)  
+**Cahier des charges (FR) — livré + backlog :** [docs/CAHIER_DES_CHARGES.md](docs/CAHIER_DES_CHARGES.md)
 
 ```
 Camera (Lumix GH6 / S1 / Osmo)
         │  Wi‑Fi (dedicated event LAN)
         ▼
 Raspberry Pi  ·  Samba inbox  ·  SSD storage
-        │  triage → local AI quality → filters + brand burn-in
+        │  triage → quality gate → filters + brand burn-in
         │  approved / hold (+ archive originals)
         ▼
-HTTP player (:8080)
+HTTP player (:8080)  ·  Régie /regie
         │
    ┌────┴────┐
 Fire TV    Browser / iPad
 ```
+
+## Docs
+
+| Doc | Role |
+|---|---|
+| **[docs/CAHIER_DES_CHARGES.md](docs/CAHIER_DES_CHARGES.md)** | Spec produit FR : ce qui est livré (V1) + backlog à implémenter (cloud Vision, fallback local, **crédits**, etc.) |
+| [pi/README.md](pi/README.md) | Install Pi, Samba, pipeline, sim, `/regie` |
+| [firetv/README.md](firetv/README.md) | Build / install Fire TV |
 
 ## Repository layout
 
@@ -26,6 +35,7 @@ Fire TV    Browser / iPad
 |---|---|
 | [`pi/`](pi/) | Raspberry Pi V1 — Samba receive, watcher, FastAPI playlist + web player |
 | [`firetv/`](firetv/) | Fire TV / Android TV V1 — fullscreen WebView kiosk |
+| [`docs/`](docs/) | Cahier des charges + specs backlog |
 | [`index.html`](index.html) | Pitch page (French), also deployed at [lyrionix.fr/showfeed](https://lyrionix.fr/showfeed/) |
 | [`assets/`](assets/) | Pitch imagery |
 
@@ -80,24 +90,27 @@ Open **SHOWFEED Player**, press **Menu** to set the Pi URL if it is not `http://
 3. User `wall` + Samba password  
 4. Prefer JPEG + short 1080p clips for live latency  
 
-## V1 scope
-
-**In**
+## V1 scope (shipped)
 
 - GH6 → Samba → SSD folders (`inbox` / `approved` / `hold` / `archive`)
 - Basic triage (extension, size, duplicates, image width)
-- Local quality gate (blur / exposure) + image filters + branding burn-in
-- Playlist API + browser player
+- **Local** quality gate (Pillow blur / exposure — not a cloud LLM) + filters + branding burn-in
+- Playlist API + browser player + idle branding when empty
 - Fire TV WebView app with configurable URL
 - Master CUE local simulation (`pi/sim/`)
 - Régie page `/regie` — alerts + one-tap hold rescue
 
-**Later** — see **[docs/CAHIER_DES_CHARGES.md](docs/CAHIER_DES_CHARGES.md)**
+## Backlog (not coded yet)
 
-- Cloud Vision (Gemini / ChatGPT) + local fallback + **credits** cap (§3)
-- Native Fire TV player / boot kiosk
-- Souvenir QR + Apple Pay (optional 4G uplink)
-- Multi-stick provisioning
+Full write-up: **[docs/CAHIER_DES_CHARGES.md](docs/CAHIER_DES_CHARGES.md)** — use that file to generate the next lot.
+
+Priority (§3 du CDC) :
+
+1. **Cloud Vision** (Gemini and/or ChatGPT) for still moderation when uplink is up  
+2. **Local fallback** on timeout / offline / API error (existing Pillow gate) — show must never stall  
+3. **Credits pool** per event to cap cloud cost (persist on SSD, warn on `/regie`, force local at 0)
+
+Also later: native Fire TV kiosk, souvenir QR + Apple Pay (optional 4G), multi-stick provisioning.
 
 ## Hardware checklist (MVP)
 
