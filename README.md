@@ -92,9 +92,9 @@ Open **SHOWFEED Player**, press **Menu** to set the Pi URL if it is not `http://
 - Master CUE local simulation (`pi/sim/`)
 - Régie page `/regie` — alerts + one-tap hold rescue
 
-**Later**
+**Later** — see **[docs/CAHIER_DES_CHARGES.md](docs/CAHIER_DES_CHARGES.md)**
 
-- Stronger / optional cloud AI moderation
+- Cloud Vision (Gemini / ChatGPT) + local fallback + **credits** cap (§3)
 - Native Fire TV player / boot kiosk
 - Souvenir QR + Apple Pay (optional 4G uplink)
 - Multi-stick provisioning
